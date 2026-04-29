@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN CODE — 10 PUZZLE SYSTEM</title>
+<link rel="icon" href="favicon.ico">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syncopate:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ─── VARIABLES ─── */
+:root {
+  --bg:    #010509;
+  --panel: #060d12;
+  --bdr:   #0b2030;
+  --c:     #00e5ff;
+  --cd:    #007a9a;
+  --cg:    rgba(0,229,255,.16);
+  --red:   #ff1744;
+  --yel:   #ffd600;
+  --grn:   #00e676;
+  --txt:   #7ecfdf;
+  --dim:   #27505f;
+  --dim2:  #163040;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Space Mono', monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ─── BG CANVAS ─── */
+#bgc { position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.32; }
+
+/* ─── SCANLINES ─── */
+.scan {
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,.28) 2px, rgba(0,0,0,.28) 4px
+  );
+  animation: scanMove 8s linear infinite;
+}
+@keyframes scanMove { to { background-position: 0 100px; } }
+
+/* ─── VIGNETTE ─── */
+.vig { position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 32%,rgba(0,0,0,.88) 100%); }
+
+/* ─── CORNER BRACKETS ─── */
+.brk { position:fixed;width:52px;height:52px;z-index:3;pointer-events:none; }
+.brk::before,.brk::after { content:'';position:absolute;background:var(--c);opacity:.32; }
+.brk.tl{top:16px;left:16px;} .brk.tl::before{top:0;left:0;width:2px;height:32px;} .brk.tl::after{top:0;left:0;width:32px;height:2px;}
+.brk.tr{top:16px;right:16px;} .brk.tr::before{top:0;right:0;width:2px;height:32px;} .brk.tr::after{top:0;right:0;width:32px;height:2px;}
+.brk.bl{bottom:16px;left:16px;} .brk.bl::before{bottom:0;left:0;width:2px;height:32px;} .brk.bl::after{bottom:0;left:0;width:32px;height:2px;}
+.brk.br{bottom:16px;right:16px;} .brk.br::before{bottom:0;right:0;width:2px;height:32px;} .brk.br::after{bottom:0;right:0;width:32px;height:2px;}
+
+/* ─── MAIN STAGE ─── */
+.stage {
+  position:relative;z-index:2;
+  width:100vw;height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px 20px;gap:0;
+}
+
+/* ─── SYSTEM HEADER ─── */
+.sys-hdr {
+  font-family:'Syncopate',sans-serif;
+  font-size:clamp(.4rem,.9vw,.65rem);
+  letter-spacing:.45em;text-transform:uppercase;color:var(--dim);
+  margin-bottom:28px;text-align:center;
+  animation:fUp 1s ease both;
+}
+.sys-hdr strong {
+  color:var(--cd);display:block;
+  font-size:1.55em;margin-bottom:5px;letter-spacing:.5em;
+}
+
+/* ─── CODE FRAME ─── */
+.code-wrap { position:relative;margin-bottom:22px;animation:fUp 1s .15s ease both; }
+
+.code-frame {
+  position:relative;
+  padding:26px 40px 22px;
+  border:1px solid var(--bdr);
+  background:linear-gradient(135deg,rgba(0,229,255,.045) 0%,transparent 55%),var(--panel);
+  border-radius:4px;overflow:hidden;
+}
+
+/* top scan line */
+.code-frame::before {
+  content:'';position:absolute;top:0;left:-60%;width:55%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);
+  animation:bScan 3.2s linear infinite;
+}
+@keyframes bScan{from{left:-60%}to{left:165%}}
+
+/* side glow */
+.code-frame::after {
+  content:'';position:absolute;inset:0;pointer-events:none;
+  box-shadow:inset 0 0 40px rgba(0,229,255,.04);
+}
+
+/* corner wires */
+.cfc{position:absolute;width:10px;height:10px;z-index:2;}
+.cfc::before,.cfc::after{content:'';position:absolute;background:var(--c);}
+.cfc.tl{top:-1px;left:-1px;} .cfc.tl::before{width:13px;height:1px;top:0;left:0;} .cfc.tl::after{width:1px;height:13px;top:0;left:0;}
+.cfc.tr{top:-1px;right:-1px;} .cfc.tr::before{width:13px;height:1px;top:0;right:0;} .cfc.tr::after{width:1px;height:13px;top:0;right:0;}
+.cfc.bl{bottom:-1px;left:-1px;} .cfc.bl::before{width:13px;height:1px;bottom:0;left:0;} .cfc.bl::after{width:1px;height:13px;bottom:0;left:0;}
+.cfc.br{bottom:-1px;right:-1px;} .cfc.br::before{width:13px;height:1px;bottom:0;right:0;} .cfc.br::after{width:1px;height:13px;bottom:0;right:0;}
+
+.lbl-top {
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  background:var(--bg);padding:0 14px;
+  font-family:'Syncopate',sans-serif;font-size:.5rem;letter-spacing:.32em;color:var(--dim);
+  white-space:nowrap;z-index:3;
+}
+
+/* ─── CODE TEXT ─── */
+#codeText {
+  font-family:'Syncopate',monospace;
+  font-size:clamp(2.4rem,9vw,5.5rem);
+  font-weight:700;letter-spacing:.16em;
+  color:var(--c);text-align:center;
+  display:block;line-height:1;
+  position:relative;z-index:1;
+  text-shadow:0 0 18px rgba(0,229,255,.7),0 0 55px rgba(0,229,255,.22);
+  transition:color .4s,text-shadow .4s;
+  word-break:break-all;min-width:200px;
+  animation:codePulse 2.5s ease-in-out infinite;
+}
+@keyframes codePulse{0%,100%{opacity:1}50%{opacity:.8}}
+
+#codeText.warn {
+  color:var(--yel);
+  text-shadow:0 0 18px rgba(255,214,0,.7),0 0 55px rgba(255,214,0,.22);
+}
+#codeText.expired {
+  color:var(--red);
+  text-shadow:0 0 18px rgba(255,23,68,.7),0 0 55px rgba(255,23,68,.22);
+  animation:glitch .28s step-end infinite;
+  letter-spacing:.06em;font-size:clamp(1.8rem,7vw,4rem);
+}
+@keyframes glitch {
+  0%,100%{clip-path:inset(0 0 0 0);transform:translate(0,0)}
+  20%{clip-path:inset(15% 0 70% 0);transform:translate(-2px,0)}
+  40%{clip-path:inset(50% 0 40% 0);transform:translate(2px,0)}
+  60%{clip-path:inset(75% 0 15% 0);transform:translate(-1px,1px)}
+  80%{clip-path:inset(30% 0 60% 0);transform:translate(1px,-1px)}
+}
+
+/* copy button under code */
+.copy-row { text-align:center;margin-top:10px; }
+.copy-btn {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 16px;
+  background:transparent;border:1px solid rgba(0,229,255,.22);border-radius:4px;
+  color:var(--dim);font-family:'Space Mono',monospace;font-size:.6rem;letter-spacing:.2em;
+  cursor:pointer;transition:all .2s;text-transform:uppercase;
+}
+.copy-btn:hover { border-color:var(--c);color:var(--c);background:rgba(0,229,255,.06); }
+.copy-btn.copied { border-color:var(--grn);color:var(--grn);background:rgba(0,230,118,.06); }
+.copy-btn:disabled { opacity:.3;pointer-events:none; }
+
+/* ─── TIMER ─── */
+.timer-sec { width:min(460px,88vw);margin-bottom:16px;animation:fUp 1s .3s ease both; }
+.timer-row { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
+.t-lbl { font-size:.6rem;letter-spacing:.28em;color:var(--dim);text-transform:uppercase; }
+
+#timerNum {
+  font-family:'Share Tech Mono',monospace;
+  font-size:1.5rem;color:var(--c);letter-spacing:.1em;
+  transition:color .3s;min-width:68px;text-align:right;
+}
+#timerNum.warn   { color:var(--yel); }
+#timerNum.danger { color:var(--red);animation:numBlink .5s step-end infinite; }
+@keyframes numBlink{0%,100%{opacity:1}50%{opacity:.12}}
+
+.t-track { position:relative;height:3px;background:var(--bdr);border-radius:2px; }
+
+#tFill {
+  height:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--cd),var(--c));
+  box-shadow:0 0 8px var(--c),0 0 18px var(--cg);
+  transition:width .85s linear,background .4s,box-shadow .4s;
+  position:relative;
+}
+#tFill::after {
+  content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);
+  width:8px;height:8px;border-radius:50%;
+  background:var(--c);box-shadow:0 0 8px var(--c);
+  transition:background .4s,box-shadow .4s;
+}
+#tFill.warn   { background:linear-gradient(90deg,#956600,var(--yel));box-shadow:0 0 8px var(--yel),0 0 18px rgba(255,214,0,.3); }
+#tFill.warn::after   { background:var(--yel);box-shadow:0 0 8px var(--yel); }
+#tFill.danger { background:linear-gradient(90deg,#880010,var(--red));box-shadow:0 0 8px var(--red),0 0 18px rgba(255,23,68,.3); }
+#tFill.danger::after { background:var(--red);box-shadow:0 0 8px var(--red); }
+#tFill.empty  { display:none; }
+
+/* tick marks */
+.t-ticks {
+  display:flex;justify-content:space-between;
+  padding:4px 0 0;
+}
+.t-tick { width:1px;height:4px;background:var(--dim2);border-radius:1px; }
+.t-tick:nth-child(6n+1) { height:7px;background:var(--dim); }
+
+/* ─── STATUS ─── */
+.stat-row {
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:22px;animation:fUp 1s .45s ease both;
+}
+.sdot {
+  width:7px;height:7px;border-radius:50%;
+  background:var(--c);box-shadow:0 0 8px var(--c);
+  animation:dotP 1.6s ease-in-out infinite;flex-shrink:0;
+}
+@keyframes dotP{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.7);opacity:.35}}
+.sdot.red { background:var(--red);box-shadow:0 0 8px var(--red);animation:dotP .4s ease-in-out infinite; }
+.sdot.yel { background:var(--yel);box-shadow:0 0 8px var(--yel);animation:dotP .8s ease-in-out infinite; }
+.sdot.off { background:#333;box-shadow:none;animation:none; }
+
+#statTxt { font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);transition:color .3s; }
+
+/* ─── SESSION INFO (below status) ─── */
+.session-info {
+  display:flex;gap:20px;justify-content:center;
+  margin-bottom:20px;animation:fUp 1s .55s ease both;
+}
+.si-item { text-align:center; }
+.si-val  { font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--txt);letter-spacing:.08em; }
+.si-lbl  { font-size:.5rem;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin-top:2px; }
+
+/* ─── INSTRUCTION ─── */
+.instr {
+  font-size:.6rem;letter-spacing:.13em;color:var(--dim);
+  text-align:center;line-height:2.4;
+  animation:fUp 1s .6s ease both;
+  border-top:1px solid var(--bdr);padding-top:18px;
+  width:min(460px,88vw);
+}
+.instr em { color:var(--cd);font-style:normal; }
+
+/* ─── ERROR ─── */
+#errMsg { font-size:.65rem;color:var(--red);text-align:center;letter-spacing:.14em;min-height:16px;margin-top:8px; }
+
+/* ─── BOTTOM STATUS BAR ─── */
+.status-bar {
+  position:fixed;bottom:0;left:0;right:0;z-index:4;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 20px;
+  background:rgba(1,5,9,.85);
+  border-top:1px solid var(--bdr);
+  backdrop-filter:blur(4px);
+}
+
+.sb-left { display:flex;align-items:center;gap:10px; }
+.sb-sync { display:flex;align-items:center;gap:6px;font-size:.55rem;letter-spacing:.18em;color:var(--dim);text-transform:uppercase; }
+.spin { width:5px;height:5px;border:1px solid var(--dim);border-top-color:var(--c);border-radius:50%;animation:spin 1s linear infinite; }
+@keyframes spin{to{transform:rotate(360deg)}}
+#syncTime { font-size:.55rem;color:var(--dim);letter-spacing:.1em;font-family:'Space Mono',monospace; }
+
+.sb-right { font-size:.52rem;letter-spacing:.15em;color:var(--dim2);text-transform:uppercase; }
+
+/* ─── ACCESS LOG ─── */
+.log-wrap {
+  position:fixed;bottom:40px;right:20px;z-index:4;
+  width:min(280px,88vw);
+  opacity:0;transform:translateY(8px);
+  transition:opacity .4s,transform .4s;
+  pointer-events:none;
+}
+.log-wrap.show { opacity:1;transform:translateY(0);pointer-events:auto; }
+
+.log-panel {
+  background:rgba(2,8,14,.92);
+  border:1px solid var(--bdr);border-radius:6px;
+  overflow:hidden;backdrop-filter:blur(8px);
+}
+.log-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 12px;
+  border-bottom:1px solid var(--bdr);
+}
+.log-header span { font-size:.58rem;letter-spacing:.22em;color:var(--dim);text-transform:uppercase; }
+.log-close { background:none;border:none;color:var(--dim);cursor:pointer;font-size:.8rem;line-height:1;padding:0; }
+.log-close:hover { color:var(--txt); }
+.log-body { padding:8px;max-height:160px;overflow-y:auto; }
+.log-entry {
+  font-size:.6rem;font-family:'Space Mono',monospace;color:var(--dim);
+  padding:3px 4px;border-bottom:1px solid var(--dim2);
+  display:flex;gap:8px;align-items:center;
+}
+.log-entry:last-child { border-bottom:none; }
+.le-dot { width:5px;height:5px;border-radius:50%;flex-shrink:0; }
+.le-dot.ok  { background:var(--grn); }
+.le-dot.err { background:var(--red); }
+.le-dot.info{ background:var(--c); }
+.le-time { color:var(--dim2);flex-shrink:0;font-size:.55rem; }
+.le-msg  { flex:1;word-break:break-all; }
+#logCount { font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--c);cursor:pointer;letter-spacing:.1em;padding:2px 6px;border:1px solid rgba(0,229,255,.2);border-radius:3px;background:none;transition:all .2s; }
+#logCount:hover { background:rgba(0,229,255,.08);border-color:rgba(0,229,255,.4); }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fUp { from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)} }
+
+/* ─── SCROLLBAR ─── */
+.log-body::-webkit-scrollbar { width:3px; }
+.log-body::-webkit-scrollbar-track { background:transparent; }
+.log-body::-webkit-scrollbar-thumb { background:var(--bdr);border-radius:2px; }
+</style>
+</head>
+<body>
+<div id="pin-gate" style="position:fixed;inset:0;z-index:99999;background:#010509;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:'Space Mono',monospace;color:#00e5ff;gap:18px;padding:24px;">
+  <div style="font-family:'Syncopate',sans-serif;letter-spacing:.4em;font-size:.7rem;color:#27505f;">SECURE ADMIN ACCESS</div>
+  <div style="font-family:'Syncopate',sans-serif;letter-spacing:.2em;font-size:1.4rem;color:#00e5ff;text-shadow:0 0 12px rgba(0,229,255,.5);">[ ENTER PIN ]</div>
+  <input id="pin-input" type="password" inputmode="text" autocomplete="off" placeholder="••••••••••••••••••••" style="background:#060d12;border:1px solid #0b2030;color:#00e5ff;font-family:'Space Mono',monospace;font-size:1.1rem;letter-spacing:.3em;padding:14px 18px;text-align:center;width:min(420px,90vw);outline:none;border-radius:4px;">
+  <button id="pin-btn" style="background:#00e5ff;color:#010509;font-family:'Syncopate',sans-serif;letter-spacing:.3em;font-size:.85rem;font-weight:700;padding:12px 32px;border:0;cursor:pointer;border-radius:4px;">UNLOCK</button>
+  <div id="pin-err" style="color:#ff1744;font-size:.85rem;letter-spacing:.2em;min-height:1.2em;"></div>
+  <a href="/" style="color:#27505f;font-size:.75rem;letter-spacing:.2em;text-decoration:none;margin-top:8px;">← BACK TO GAME</a>
+</div>
+<script>
+// ─── ADMIN PIN GATE (PBKDF2-SHA256, 200000 iter) ─────────────
+// 平文 PIN は埋め込まない。下のソルト＋ハッシュだけが含まれる。
+(function(){
+  const GATE_PIN = {
+    salt: "hY/+X2qYJ/2B1ygCtNlBDA==",
+    hash: "QUQyKRGouD3AuxB1CCHP+Z/aZioGkx9OAco3m1rstiE=",
+    iter: 200000,
+  };
+  const gate = document.getElementById("pin-gate");
+  if (sessionStorage.getItem("admin_unlock_v2") === "1") { gate.remove(); return; }
+  document.documentElement.style.overflow = "hidden";
+  const input = document.getElementById("pin-input");
+  const btn   = document.getElementById("pin-btn");
+  const err   = document.getElementById("pin-err");
+  let attempts = 0, busy = false;
+
+  function b64ToU8(b64){
+    const bin = atob(b64), u = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) u[i] = bin.charCodeAt(i);
+    return u;
+  }
+  function u8ToB64(u8){
+    let s=''; for (let i=0;i<u8.length;i++) s += String.fromCharCode(u8[i]);
+    return btoa(s);
+  }
+  async function derive(pin){
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin),
+      { name:'PBKDF2' }, false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits(
+      { name:'PBKDF2', salt:b64ToU8(GATE_PIN.salt), iterations:GATE_PIN.iter, hash:'SHA-256' },
+      key, 256);
+    return u8ToB64(new Uint8Array(bits));
+  }
+  async function unlock(){
+    if (busy) return;
+    busy = true; btn.disabled = true;
+    const orig = btn.textContent; btn.textContent = "VERIFYING...";
+    try {
+      const got = await derive(input.value);
+      if (got === GATE_PIN.hash) {
+        sessionStorage.setItem("admin_unlock_v2", "1");
+        gate.remove();
+        document.documentElement.style.overflow = "";
+        return;
+      }
+      attempts++;
+      err.textContent = "ACCESS DENIED [" + attempts + "/5]";
+      input.value = ""; input.focus();
+      if (attempts >= 5) {
+        document.body.innerHTML = '<div style="color:#ff1744;font-family:Space Mono,monospace;text-align:center;margin-top:40vh;letter-spacing:.3em;font-size:1.2rem;">SYSTEM LOCKED</div>';
+        return;
+      }
+    } catch(e) {
+      err.textContent = "VERIFY ERROR";
+    } finally {
+      btn.disabled = false; btn.textContent = orig; busy = false;
+    }
+  }
+  btn.addEventListener("click", unlock);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") unlock(); });
+  setTimeout(() => input.focus(), 50);
+})();
+</script>
+
+
+<canvas id="bgc"></canvas>
+<div class="scan"></div>
+<div class="vig"></div>
+
+<div class="brk tl"></div><div class="brk tr"></div>
+<div class="brk bl"></div><div class="brk br"></div>
+
+<div class="stage">
+
+  <!-- SYSTEM HEADER -->
+  <div class="sys-hdr">
+    <strong>10 PUZZLE SYSTEM</strong>
+    ADMINISTRATOR AUTHENTICATION TERMINAL
+  </div>
+
+  <!-- CODE DISPLAY -->
+  <div class="code-wrap">
+    <div class="code-frame">
+      <span class="cfc tl"></span><span class="cfc tr"></span>
+      <span class="cfc bl"></span><span class="cfc br"></span>
+      <div class="lbl-top">■ ONE-TIME ACCESS CODE ■</div>
+      <span id="codeText">– – – – –</span>
+    </div>
+    <div class="copy-row">
+      <button class="copy-btn" id="copyBtn" onclick="copyCode()" disabled>
+        <span>⎘</span> COPY CODE
+      </button>
+    </div>
+  </div>
+
+  <!-- TIMER -->
+  <div class="timer-sec">
+    <div class="timer-row">
+      <span class="t-lbl">TIME REMAINING</span>
+      <span id="timerNum">5 : 00</span>
+    </div>
+    <div class="t-track">
+      <div id="tFill" style="width:100%;"></div>
+    </div>
+    <div class="t-ticks" id="tTicks"></div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="stat-row">
+    <div class="sdot" id="sdot"></div>
+    <span id="statTxt">INITIALIZING...</span>
+  </div>
+
+  <!-- SESSION INFO -->
+  <div class="session-info">
+    <div class="si-item">
+      <div class="si-val" id="siCreated">–</div>
+      <div class="si-lbl">ISSUED AT</div>
+    </div>
+    <div class="si-item">
+      <div class="si-val" id="siExpires">–</div>
+      <div class="si-lbl">EXPIRES AT</div>
+    </div>
+    <div class="si-item">
+      <div class="si-val" id="siLen">10</div>
+      <div class="si-lbl">CODE LENGTH</div>
+    </div>
+  </div>
+
+  <!-- INSTRUCTION -->
+  <div class="instr">
+    このコードを <em>10 PUZZLE</em> のログイン画面に入力してください<br>
+    コードは <em>5分間</em> 有効 &nbsp;·&nbsp; 1回のみ使用可能 &nbsp;·&nbsp; 再認証すると無効
+  </div>
+
+  <div id="errMsg"></div>
+</div>
+
+<!-- BOTTOM STATUS BAR -->
+<div class="status-bar">
+  <div class="sb-left">
+    <div class="sb-sync"><div class="spin"></div>AUTO SYNC</div>
+    <span id="syncTime">–</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <button id="logCount" onclick="toggleLog()">LOG 0</button>
+    <div class="sb-right">10 PUZZLE SYSTEM v1.2</div>
+  </div>
+</div>
+
+<!-- ACCESS LOG PANEL -->
+<div class="log-wrap" id="logWrap">
+  <div class="log-panel">
+    <div class="log-header">
+      <span>ACCESS LOG</span>
+      <button class="log-close" onclick="toggleLog()">✕</button>
+    </div>
+    <div class="log-body" id="logBody"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ─── CONFIG ───
+const TTL      = 300; // sec
+const POLL_MS  = 1500;
+
+// ─── PARTICLE BG (軽量化版: 粒子数↓ / sqrt回避 / 30fpsスロットル / 非可視時停止) ───
+(function () {
+  const cv = document.getElementById('bgc');
+  const cx = cv.getContext('2d');
+  const N        = 24;          // 60 → 24
+  const LINK     = 110;         // 接続距離
+  const LINK_SQ  = LINK * LINK; // 平方比較で sqrt を回避
+  const FRAME_MS = 1000 / 30;   // 30fps スロットル
+  let W, H, pts = [], rafId = 0, lastT = 0, paused = false;
+
+  function rsz() {
+    W = cv.width  = innerWidth;
+    H = cv.height = innerHeight;
+  }
+  function init() {
+    pts = [];
+    for (let i = 0; i < N; i++) {
+      pts.push({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - .5) * .32, vy: (Math.random() - .5) * .32,
+        r: Math.random() * 1.4 + .25,
+      });
+    }
+  }
+  function draw(t) {
+    rafId = requestAnimationFrame(draw);
+    if (paused) return;
+    if (t - lastT < FRAME_MS) return;
+    lastT = t;
+    cx.clearRect(0, 0, W, H);
+
+    for (let i = 0; i < N; i++) {
+      const p = pts[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; else if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; else if (p.y > H) p.y = 0;
+    }
+    cx.lineWidth = .5;
+    for (let i = 0; i < N; i++) {
+      const a = pts[i];
+      for (let j = i + 1; j < N; j++) {
+        const b = pts[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const dsq = dx * dx + dy * dy;
+        if (dsq < LINK_SQ) {
+          cx.strokeStyle = `rgba(0,175,215,${(1 - dsq / LINK_SQ) * .32})`;
+          cx.beginPath();
+          cx.moveTo(a.x, a.y);
+          cx.lineTo(b.x, b.y);
+          cx.stroke();
+        }
+      }
+    }
+    cx.fillStyle = 'rgba(0,200,230,.5)';
+    for (let i = 0; i < N; i++) {
+      const p = pts[i];
+      cx.beginPath();
+      cx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      cx.fill();
+    }
+  }
+
+  rsz(); init();
+  rafId = requestAnimationFrame(draw);
+  // タブ非表示中は描画停止
+  document.addEventListener('visibilitychange', () => { paused = document.hidden; });
+  // リサイズはデバウンス
+  let rzT;
+  window.addEventListener('resize', () => {
+    clearTimeout(rzT);
+    rzT = setTimeout(() => { rsz(); init(); }, 150);
+  });
+})();
+
+// ─── TICK MARKS ───
+(function () {
+  const ticks = document.getElementById('tTicks');
+  for (let i = 0; i < 61; i++) {
+    const d = document.createElement('div');
+    d.className = 't-tick';
+    ticks.appendChild(d);
+  }
+})();
+
+// ─── ACCESS LOG ───
+const accessLog = [];
+let logVisible  = false;
+
+function addLog(type, msg) {
+  const now = new Date();
+  const t   = now.toTimeString().slice(0, 8);
+  accessLog.unshift({ type, msg, t });
+  if (accessLog.length > 30) accessLog.pop();
+  renderLog();
+  document.getElementById('logCount').textContent = `LOG ${accessLog.length}`;
+}
+
+function renderLog() {
+  const body = document.getElementById('logBody');
+  body.innerHTML = accessLog.map(e => `
+    <div class="log-entry">
+      <div class="le-dot ${e.type}"></div>
+      <span class="le-time">${e.t}</span>
+      <span class="le-msg">${e.msg}</span>
+    </div>`).join('');
+}
+
+function toggleLog() {
+  logVisible = !logVisible;
+  document.getElementById('logWrap').classList.toggle('show', logVisible);
+}
+
+// ─── COPY CODE ───
+let currentCode = '';
+
+function copyCode() {
+  if (!currentCode) return;
+  const rawCode = currentCode.replace(/\s+/g, '');
+  navigator.clipboard.writeText(rawCode).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ COPIED';
+    btn.classList.add('copied');
+    addLog('ok', `Code copied to clipboard`);
+    setTimeout(() => {
+      btn.innerHTML = '<span>⎘</span> COPY CODE';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    addLog('err', 'Clipboard write failed');
+  });
+}
+
+// ─── HELPERS ───
+function fmtTime(unix) {
+  if (!unix) return '–';
+  return new Date(unix * 1000).toTimeString().slice(0, 8);
+}
+
+function updateSyncTime() {
+  document.getElementById('syncTime').textContent =
+    new Date().toTimeString().slice(0, 8);
+}
+
+// ─── MAIN UPDATE ───
+let lastCode    = '';
+let wasExpired  = false;
+
+function update(code, remain, dur) {
+  const ct  = document.getElementById('codeText');
+  const tn  = document.getElementById('timerNum');
+  const tf  = document.getElementById('tFill');
+  const sd  = document.getElementById('sdot');
+  const st  = document.getElementById('statTxt');
+  const cb  = document.getElementById('copyBtn');
+
+  const pct = Math.max(0, Math.min(100, (remain / dur) * 100));
+  const rem = Math.max(remain, 0);
+  const m   = Math.floor(rem / 60);
+  const s   = Math.floor(rem % 60);
+
+  tf.style.width = pct + '%';
+  updateSyncTime();
+
+  if (remain <= 0) {
+    // EXPIRED
+    if (!wasExpired) {
+      addLog('err', 'Code session expired');
+      wasExpired = true;
+    }
+    ct.textContent = 'EXPIRED';
+    ct.className   = 'expired';
+    tn.textContent = '0 : 00';
+    tn.className   = 'danger';
+    tf.style.width = '0%';
+    tf.className   = 'danger';
+    sd.className   = 'sdot red';
+    st.textContent = 'SESSION EXPIRED — PLEASE RE-LOGIN';
+    st.style.color = 'var(--red)';
+    cb.disabled    = true;
+    currentCode    = '';
+    return;
+  }
+
+  wasExpired = false;
+
+  // Format code (space every 5 chars)
+  const formatted = code.match(/.{1,5}/g)?.join('  ') || code;
+  ct.textContent  = formatted;
+  currentCode     = code;
+  cb.disabled     = false;
+
+  if (code !== lastCode && code !== 'PLACEHOLDER' && code) {
+    if (lastCode) addLog('info', `Code refreshed`);
+    else          addLog('ok',   `New code loaded — ${code.slice(0,4)}••••`);
+    lastCode = code;
+  }
+
+  tn.textContent = m + ' : ' + String(s).padStart(2, '0');
+
+  if (remain <= 30) {
+    ct.className   = 'warn';
+    tn.className   = 'danger';
+    tf.className   = 'danger';
+    sd.className   = 'sdot red';
+    st.textContent = 'EXPIRING — ENTER CODE NOW';
+    st.style.color = 'var(--red)';
+  } else if (remain <= 90) {
+    ct.className   = 'warn';
+    tn.className   = 'warn';
+    tf.className   = 'warn';
+    sd.className   = 'sdot yel';
+    st.textContent = 'CODE ACTIVE — EXPIRING SOON';
+    st.style.color = 'var(--yel)';
+  } else {
+    ct.className   = '';
+    tn.className   = '';
+    tf.className   = '';
+    sd.className   = 'sdot';
+    st.textContent = 'CODE VALID — ENTER IN LOGIN SCREEN';
+    st.style.color = '';
+  }
+}
+
+function setErr(msg) {
+  document.getElementById('errMsg').textContent = msg;
+  const ct = document.getElementById('codeText');
+  ct.textContent = 'READ ERROR';
+  ct.className   = 'expired';
+  document.getElementById('sdot').className   = 'sdot off';
+  document.getElementById('statTxt').textContent = 'CONNECTION FAILED';
+  document.getElementById('statTxt').style.color = 'var(--red)';
+  document.getElementById('copyBtn').disabled = true;
+  addLog('err', msg);
+}
+
+function setSessionInfo(data) {
+  document.getElementById('siCreated').textContent = fmtTime(data.created_at);
+  document.getElementById('siExpires').textContent = fmtTime(data.expires_at);
+  document.getElementById('siLen').textContent     = String(data.code || '').length || '–';
+}
+
+// ─── DATA SOURCES ───
+
+function tryLocalStorage() {
+  try {
+    const raw = localStorage.getItem('make10_adminCode');
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d || !d.code) return false;
+    if (d.code === 'PLACEHOLDER') return false;
+    const exp = Number(d.expires_at || 0);
+    const cre = Number(d.created_at || 0);
+    const now = Date.now() / 1000;
+    setSessionInfo(d);
+    update(String(d.code), exp - now, (exp - cre) || TTL);
+    document.getElementById('errMsg').textContent = '';
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fetchFile() {
+  const res = await fetch('data/admin_code.json?_=' + Date.now(), { cache: 'no-store' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const d = await res.json();
+  if (!d || !d.code || d.code === 'PLACEHOLDER') throw new Error('no valid code');
+  const exp = Number(d.expires_at || 0);
+  const cre = Number(d.created_at || 0);
+  const now = Date.now() / 1000;
+  setSessionInfo(d);
+  update(String(d.code), exp - now, (exp - cre) || TTL);
+  document.getElementById('errMsg').textContent = '';
+}
+
+let pollFails = 0;
+
+async function poll() {
+  updateSyncTime();
+  if (tryLocalStorage()) { pollFails = 0; return; }
+  try {
+    await fetchFile();
+    pollFails = 0;
+  } catch (e) {
+    pollFails++;
+    if (pollFails >= 3) {
+      setErr('データを取得できません（' + pollFails + '回失敗）');
+    }
+  }
+}
+
+// ─── START ───
+addLog('info', 'Terminal initialized');
+setInterval(poll, POLL_MS);
+poll();
+</script>
+</body>
+</html>>

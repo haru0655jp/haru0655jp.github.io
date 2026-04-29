@@ -1,0 +1,3789 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 PUZZLE</title>
+<link rel="icon" href="favicon.ico">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
+
+/* ══════════════════════════════════════
+   ROOT VARIABLES & RESET
+══════════════════════════════════════ */
+:root {
+  --bg:     #080b10;
+  --bg2:    #0d1117;
+  --bg3:    #121820;
+  --bg4:    #161e28;
+  --border: #1e2d3d;
+  --border2:#253545;
+  --c:      #00d4f5;
+  --c2:     #ff5f1f;
+  --c3:     #9b72ff;
+  --grn:    #00f590;
+  --red:    #ff3355;
+  --yel:    #ffe033;
+  --txt:    #d8e6f0;
+  --muted:  #4a6070;
+  --card:   #0e1520;
+  --glow:   0 0 24px rgba(0,212,245,.28);
+  --glow2:  0 0 24px rgba(255,95,31,.28);
+  --glow3:  0 0 24px rgba(155,114,255,.28);
+}
+
+/* ══════════════════════════════════════
+   LIGHT MODE
+══════════════════════════════════════ */
+body.light-mode {
+  --bg:     #f0f4f8;
+  --bg2:    #ffffff;
+  --bg3:    #e8edf2;
+  --bg4:    #dde4ec;
+  --border: #c5d0dc;
+  --border2:#aabacb;
+  --c:      #0077aa;
+  --c2:     #cc4400;
+  --c3:     #6644bb;
+  --grn:    #007744;
+  --red:    #cc1133;
+  --yel:    #aa8800;
+  --txt:    #1a2535;
+  --muted:  #6a7f96;
+  --card:   #ffffff;
+  --glow:   0 0 24px rgba(0,119,170,.2);
+  --glow2:  0 0 24px rgba(204,68,0,.2);
+  --glow3:  0 0 24px rgba(102,68,187,.2);
+}
+body.light-mode::before {
+  background:
+    radial-gradient(ellipse 90% 60% at 15% 5%,  rgba(0,119,170,.06) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 85% 95%, rgba(102,68,187,.04) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(204,68,0,.02) 0%, transparent 70%);
+}
+body.light-mode::after {
+  background-image:
+    linear-gradient(rgba(0,119,170,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,119,170,.03) 1px, transparent 1px);
+}
+body.light-mode .game-logo { filter: drop-shadow(0 0 12px rgba(0,119,170,.3)); }
+body.light-mode .prob-wrap {
+  background: linear-gradient(135deg, rgba(0,119,170,.04) 0%, rgba(102,68,187,.03) 100%);
+  border-color: rgba(0,119,170,.2);
+}
+body.light-mode .pnum {
+  background: rgba(0,119,170,.08);
+  border-color: rgba(0,119,170,.25);
+}
+body.light-mode .nbtn { color: var(--c); }
+body.light-mode .opbtn { color: var(--c3); border-color: rgba(102,68,187,.3); }
+body.light-mode input[type=text],
+body.light-mode input[type=password],
+body.light-mode input[type=number],
+body.light-mode select,
+body.light-mode textarea {
+  color: var(--txt);
+  background: var(--bg4);
+}
+body.light-mode .toast { background: var(--bg2); color: var(--txt); }
+
+/* dark mode toggle button */
+.dark-toggle {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  z-index: 500;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--txt);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  box-shadow: 0 2px 12px rgba(0,0,0,.18);
+}
+.dark-toggle:hover { transform: scale(1.12); border-color: var(--c); }
+
+/* ══════════════════════════════════════
+   BADGE SYSTEM
+══════════════════════════════════════ */
+.achievement-popup {
+  position: fixed;
+  bottom: 80px;
+  right: 18px;
+  z-index: 9998;
+  background: linear-gradient(135deg, var(--bg2), var(--bg3));
+  border: 1px solid var(--c);
+  border-radius: 14px;
+  padding: 16px 20px;
+  max-width: 280px;
+  animation: achieveIn .4s cubic-bezier(.34,1.56,.64,1);
+  box-shadow: var(--glow);
+}
+@keyframes achieveIn {
+  from { opacity:0; transform: translateX(60px) scale(.8); }
+  to   { opacity:1; transform: translateX(0) scale(1); }
+}
+.achieve-ttl { font-family:'Orbitron',monospace; font-size:.65rem; letter-spacing:.2em; color:var(--c); text-transform:uppercase; margin-bottom:6px; }
+.achieve-icon { font-size:2rem; margin-bottom:4px; display:block; }
+.achieve-name { font-weight:700; font-size:.92rem; margin-bottom:2px; }
+.achieve-desc { font-size:.75rem; color:var(--muted); }
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.badge-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 8px;
+  text-align: center;
+  transition: all .2s;
+  position: relative;
+}
+.badge-item.unlocked { border-color: var(--c); background: rgba(0,212,245,.06); }
+.badge-item.locked { opacity: .4; filter: grayscale(1); }
+.badge-item .bi-icon { font-size: 1.8rem; display: block; margin-bottom: 4px; }
+.badge-item .bi-name { font-size: .68rem; font-weight:700; color: var(--txt); }
+.badge-item .bi-desc { font-size: .6rem; color: var(--muted); margin-top:2px; }
+
+/* ══════════════════════════════════════
+   DAILY CHALLENGE
+══════════════════════════════════════ */
+.daily-card {
+  background: linear-gradient(135deg, rgba(155,114,255,.1), rgba(0,212,245,.07));
+  border: 1px solid rgba(155,114,255,.35);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.daily-card::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: repeating-linear-gradient(
+    -45deg, transparent, transparent 8px,
+    rgba(155,114,255,.03) 8px, rgba(155,114,255,.03) 9px
+  );
+}
+.daily-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; position:relative; }
+.daily-title { font-family:'Orbitron',monospace; font-size:.72rem; letter-spacing:.22em; color:var(--c3); text-transform:uppercase; }
+.daily-countdown { font-family:'Space Mono',monospace; font-size:.72rem; color:var(--muted); margin-left:auto; }
+.daily-nums { font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900; color:var(--c3); letter-spacing:.15em; position:relative; margin-bottom:8px; }
+.daily-status { font-size:.78rem; color:var(--muted); position:relative; }
+.daily-status.done { color:var(--grn); }
+
+/* ══════════════════════════════════════
+   PAUSE OVERLAY
+══════════════════════════════════════ */
+.pause-ov {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.82);
+  z-index: 800;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  animation: fadeOv .2s ease;
+}
+.pause-ov.show { display: flex; }
+.pause-icon { font-size:4rem; margin-bottom:16px; }
+.pause-title { font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:900; color:var(--c); margin-bottom:8px; letter-spacing:.15em; }
+.pause-sub { color:var(--muted); font-size:.85rem; margin-bottom:28px; }
+.pause-btns { display:flex; flex-direction:column; gap:10px; width:220px; }
+
+/* ══════════════════════════════════════
+   HINT BUTTON
+══════════════════════════════════════ */
+.hint-btn {
+  padding: 10px 16px;
+  background: rgba(255,224,51,.1);
+  border: 1px solid rgba(255,224,51,.3);
+  border-radius: 8px;
+  color: var(--yel);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.hint-btn:hover { background: rgba(255,224,51,.2); border-color: var(--yel); }
+.hint-btn:disabled { opacity:.35; cursor:not-allowed; }
+
+/* ══════════════════════════════════════
+   CHALLENGE (FRIEND BATTLE)
+══════════════════════════════════════ */
+.challenge-link-box {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'Space Mono', monospace;
+  font-size: .72rem;
+  color: var(--muted);
+  word-break: break-all;
+  margin: 10px 0;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.challenge-link-box:hover { border-color: var(--c); color: var(--txt); }
+
+.vs-banner {
+  text-align:center;
+  padding:12px;
+  background: linear-gradient(135deg, rgba(255,51,85,.1), rgba(155,114,255,.1));
+  border: 1px solid rgba(255,51,85,.3);
+  border-radius: 10px;
+  margin-bottom:12px;
+}
+.vs-banner .vs-title { font-family:'Orbitron',monospace; font-size:1rem; font-weight:900; color:var(--red); letter-spacing:.2em; }
+.vs-banner .vs-sub { font-size:.75rem; color:var(--muted); margin-top:4px; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--txt);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Ambient background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 60% at 15% 5%,  rgba(0,212,245,.07) 0%, transparent 65%),
+    radial-gradient(ellipse 70% 50% at 85% 95%, rgba(155,114,255,.05) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(255,95,31,.03) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Grid texture */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,245,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,245,.025) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+  min-height: 100vh;
+}
+
+/* ══════════════════════════════════════
+   TYPOGRAPHY
+══════════════════════════════════════ */
+.orb  { font-family: 'Orbitron', monospace; }
+.mono { font-family: 'Space Mono', monospace; }
+
+/* ══════════════════════════════════════
+   SCREEN SYSTEM
+══════════════════════════════════════ */
+.screen { display: none; }
+.screen.active { display: block; animation: screenIn .35s cubic-bezier(.22,1,.36,1) both; }
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════
+   SECTION TITLE / HEADER
+══════════════════════════════════════ */
+.game-logo {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: .1em;
+  background: linear-gradient(135deg, var(--c) 0%, var(--c3) 60%, var(--c) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(0,212,245,.4));
+  padding: 28px 0 8px;
+  animation: logoShimmer 4s linear infinite;
+}
+@keyframes logoShimmer { to { background-position: 200% center; } }
+
+.logo-sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: .78rem;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  font-family: 'Space Mono', monospace;
+}
+
+/* ══════════════════════════════════════
+   CARD
+══════════════════════════════════════ */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,212,245,.25), transparent);
+}
+
+.card-title {
+  font-family: 'Orbitron', monospace;
+  font-size: .7rem;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--c);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-title::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 18px;
+  background: linear-gradient(180deg, var(--c), var(--c3));
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════
+   INPUTS
+══════════════════════════════════════ */
+.inp-grp { margin-bottom: 16px; }
+.inp-grp label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: 6px; letter-spacing: .05em; }
+
+input[type=text], input[type=password], input[type=number], select, textarea {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: var(--txt);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: .93rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--c);
+  background: var(--bg4);
+  box-shadow: 0 0 0 3px rgba(0,212,245,.12);
+}
+
+/* ══════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .02em;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background .15s;
+}
+.btn:hover::after { background: rgba(255,255,255,.07); }
+.btn:active { transform: scale(.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--c), #007b9a);
+  color: #000;
+  font-weight: 700;
+  box-shadow: var(--glow);
+}
+.btn-primary:hover { box-shadow: 0 0 36px rgba(0,212,245,.5); transform: translateY(-2px); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--txt);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { border-color: var(--c); color: var(--c); }
+
+.btn-danger { background: linear-gradient(135deg, var(--red), #aa0020); color: #fff; }
+.btn-danger:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(255,51,85,.4); }
+
+.btn-warn { background: linear-gradient(135deg, var(--yel), #aa9000); color: #000; }
+.btn-green { background: linear-gradient(135deg, var(--grn), #007a40); color: #000; }
+.btn-purple { background: linear-gradient(135deg, var(--c3), #5500cc); color: #fff; }
+
+.btn-sm { padding: 6px 12px; font-size: .78rem; border-radius: 6px; }
+.btn-full { width: 100%; margin-bottom: 8px; }
+
+.btn-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ══════════════════════════════════════
+   BADGES
+══════════════════════════════════════ */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 20px;
+  font-size: .7rem;
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+  letter-spacing: .05em;
+}
+.badge-admin  { background: rgba(255,95,31,.18);  color: var(--c2); border: 1px solid rgba(255,95,31,.35); }
+.badge-ban    { background: rgba(255,51,85,.18);  color: var(--red); border: 1px solid rgba(255,51,85,.35); }
+.badge-on     { background: rgba(0,245,144,.15);  color: var(--grn); border: 1px solid rgba(0,245,144,.3); }
+.badge-off    { background: rgba(74,96,112,.2);   color: var(--muted); border: 1px solid rgba(74,96,112,.3); }
+
+/* ══════════════════════════════════════
+   MENU GRID
+══════════════════════════════════════ */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.menu-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px 18px;
+  cursor: pointer;
+  transition: all .25s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0,212,245,.06) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity .25s;
+}
+
+.menu-card:hover {
+  border-color: rgba(0,212,245,.4);
+  transform: translateY(-4px);
+  box-shadow: var(--glow);
+}
+.menu-card:hover::before { opacity: 1; }
+
+.menu-card:active { transform: translateY(-2px); }
+
+.mc-icon { font-size: 2.2rem; margin-bottom: 10px; display: block; }
+.mc-title { font-weight: 700; font-size: .92rem; margin-bottom: 4px; }
+.mc-sub { font-size: .72rem; color: var(--muted); }
+
+/* ══════════════════════════════════════
+   DIFFICULTY CARDS
+══════════════════════════════════════ */
+.diff-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.diff-card {
+  background: var(--bg3);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: all .22s;
+  position: relative;
+}
+
+.diff-card::after { content: attr(data-pts); position: absolute; top: 10px; right: 12px; font-family: 'Space Mono', monospace; font-size: .65rem; color: var(--muted); }
+
+.diff-card:hover { transform: translateY(-3px); }
+.diff-card.d1:hover { border-color: var(--grn); box-shadow: 0 0 18px rgba(0,245,144,.2); }
+.diff-card.d2:hover { border-color: var(--c);   box-shadow: var(--glow); }
+.diff-card.d3:hover { border-color: var(--c2);  box-shadow: var(--glow2); }
+.diff-card.d4:hover { border-color: var(--red); box-shadow: 0 0 18px rgba(255,51,85,.2); }
+.diff-card.sel { border-color: var(--c); background: rgba(0,212,245,.05); }
+
+.dc-name { font-weight: 700; font-size: .95rem; margin-bottom: 5px; }
+.dc-ops  { font-family: 'Space Mono', monospace; font-size: .72rem; color: var(--muted); margin-bottom: 5px; }
+.dc-desc { font-size: .78rem; color: var(--muted); }
+
+/* ══════════════════════════════════════
+   TABS
+══════════════════════════════════════ */
+.tabs {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 20px;
+  background: var(--bg3);
+  padding: 4px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.tab {
+  flex: 1;
+  min-width: 72px;
+  padding: 8px 14px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: .82rem;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.tab.active { background: var(--c); color: #000; font-weight: 700; }
+.tab:not(.active):hover { color: var(--txt); }
+
+/* ══════════════════════════════════════
+   GAME HEADER
+══════════════════════════════════════ */
+.game-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 18px;
+  background: var(--bg3);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gstat { text-align: center; }
+.gstat .v { font-family: 'Orbitron', monospace; font-size: 1.35rem; font-weight: 700; color: var(--c); line-height: 1; }
+.gstat .l { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 2px; }
+
+/* PROBLEM DISPLAY */
+.prob-wrap {
+  text-align: center;
+  margin: 20px 0;
+  padding: 28px 20px;
+  background: linear-gradient(135deg, rgba(0,212,245,.05) 0%, rgba(155,114,255,.04) 100%);
+  border: 1px solid rgba(0,212,245,.18);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.prob-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 12px,
+    rgba(0,212,245,.018) 12px, rgba(0,212,245,.018) 13px
+  );
+}
+
+.prob-nums {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.8rem, 9vw, 5rem);
+  font-weight: 900;
+  letter-spacing: .18em;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pnum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  background: rgba(0,212,245,.1);
+  border: 1px solid rgba(0,212,245,.28);
+  border-radius: 8px;
+  color: var(--c);
+  min-width: 64px;
+  transition: all .2s;
+}
+
+.pnum.used {
+  background: rgba(74,96,112,.12);
+  border-color: rgba(74,96,112,.2);
+  color: var(--muted);
+  text-decoration: line-through;
+  opacity: .45;
+}
+
+/* EXPR DISPLAY */
+.expr-box {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 14px 18px;
+  font-family: 'Space Mono', monospace;
+  font-size: 1.25rem;
+  text-align: center;
+  min-height: 52px;
+  color: var(--txt);
+  letter-spacing: .08em;
+  margin: 12px 0;
+  word-break: break-all;
+  transition: border-color .2s;
+}
+
+.expr-box.has-content { border-color: rgba(0,212,245,.3); }
+
+/* NUM PAD */
+.num-pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0; }
+
+.nbtn {
+  padding: 15px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--c);
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.nbtn::after { content:''; position:absolute; inset:0; background:rgba(255,255,255,0); transition: background .1s; }
+.nbtn:hover { background: rgba(0,212,245,.1); border-color: rgba(0,212,245,.4); }
+.nbtn:hover::after { background: rgba(255,255,255,.04); }
+.nbtn:active { transform: scale(.94); }
+.nbtn.used { opacity: .25; pointer-events: none; }
+
+/* OP PAD */
+.op-pad { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 8px 0; }
+
+.opbtn {
+  padding: 12px 8px;
+  background: var(--bg3);
+  border: 1px solid rgba(155,114,255,.25);
+  border-radius: 8px;
+  color: var(--c3);
+  font-family: 'Space Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  text-align: center;
+}
+.opbtn:hover { background: rgba(155,114,255,.12); border-color: var(--c3); }
+.opbtn:active { transform: scale(.94); }
+.opbtn.dis { opacity: .22; pointer-events: none; }
+
+/* COMBO */
+.combo-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: 'Orbitron', monospace;
+  font-size: .8rem;
+  font-weight: 700;
+  background: rgba(255,95,31,.14);
+  color: var(--c2);
+  border: 1px solid rgba(255,95,31,.28);
+  transition: all .2s;
+}
+.combo-pill.hot { animation: comboFlash .45s ease; }
+@keyframes comboFlash {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); box-shadow: 0 0 22px rgba(255,95,31,.65); }
+  100% { transform: scale(1); }
+}
+
+/* FEEDBACK */
+.fb {
+  text-align: center;
+  padding: 11px 14px;
+  border-radius: 8px;
+  font-size: .95rem;
+  font-weight: 700;
+  margin: 8px 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all .25s;
+  animation: fbIn .25s ease;
+}
+@keyframes fbIn { from { transform: scale(.97); opacity: .6; } to { transform: scale(1); opacity: 1; } }
+
+.fb.ok  { background: rgba(0,245,144,.1); color: var(--grn); border: 1px solid rgba(0,245,144,.28); }
+.fb.ng  { background: rgba(255,51,85,.1); color: var(--red); border: 1px solid rgba(255,51,85,.28); }
+.fb.inf { background: rgba(0,212,245,.1); color: var(--c);   border: 1px solid rgba(0,212,245,.28); }
+
+/* TIMER BAR */
+.t-bar-wrap { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin-bottom: 14px; }
+.t-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--grn), var(--c));
+  transition: width .55s linear, background .5s;
+  box-shadow: 0 0 8px var(--c);
+}
+.t-bar.warn { background: linear-gradient(90deg, var(--red), var(--yel)); box-shadow: 0 0 8px var(--yel); }
+
+/* PROGRESS BAR */
+.prog-wrap { height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-bottom: 14px; }
+.prog-bar  { height: 100%; background: var(--c); border-radius: 2px; transition: width .35s ease; }
+
+/* ══════════════════════════════════════
+   RESULT SCREEN
+══════════════════════════════════════ */
+.result-stage { text-align: center; padding: 48px 20px; }
+
+.result-mode { font-family: 'Orbitron', monospace; font-size: .72rem; letter-spacing: .3em; color: var(--muted); text-transform: uppercase; }
+
+.result-score {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(3.5rem, 12vw, 7rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--c), var(--c3), var(--c));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(0,212,245,.45));
+  line-height: 1;
+  margin: 18px 0;
+  animation: logoShimmer 3s linear infinite;
+}
+
+.result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin: 24px 0; }
+
+.result-cell {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.result-cell .v { font-family: 'Orbitron', monospace; font-size: 1.5rem; font-weight: 700; color: var(--c); }
+.result-cell .l { font-size: .68rem; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+/* ══════════════════════════════════════
+   RANK LIST
+══════════════════════════════════════ */
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: border-color .2s;
+}
+.rank-item:hover { border-color: var(--border2); }
+
+.rank-n { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 900; width: 38px; text-align: center; color: var(--muted); flex-shrink: 0; }
+.rank-n.gold   { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,.5); }
+.rank-n.silver { color: #c0c0c0; }
+.rank-n.bronze { color: #cd7f32; }
+
+.rank-info { flex: 1; overflow: hidden; }
+.rank-name { font-weight: 700; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-sub  { font-size: .73rem; color: var(--muted); }
+.rank-score { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; color: var(--c); flex-shrink: 0; }
+
+/* ══════════════════════════════════════
+   ADMIN CODE AUTH BOX
+══════════════════════════════════════ */
+.auth-wrap {
+  background: linear-gradient(135deg, rgba(0,212,245,.06), rgba(155,114,255,.04));
+  border: 1px solid rgba(0,212,245,.22);
+  border-radius: 12px;
+  padding: 28px 22px;
+  text-align: center;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 50%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--c), transparent);
+  animation: authScan 4s linear infinite;
+}
+@keyframes authScan { from { left: -60%; } to { left: 160%; } }
+
+.auth-icon { font-size: 3rem; margin-bottom: 12px; }
+.auth-ttl  { font-family: 'Orbitron', monospace; font-size: .75rem; letter-spacing: .28em; color: var(--c); margin-bottom: 10px; text-transform: uppercase; }
+.auth-desc { font-size: .82rem; color: var(--muted); line-height: 1.75; margin-bottom: 20px; }
+.auth-desc strong { color: var(--c); }
+
+.open-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, rgba(0,212,245,.14), rgba(155,114,255,.1));
+  border: 1px solid rgba(0,212,245,.38);
+  border-radius: 8px;
+  color: var(--c);
+  font-family: 'Orbitron', monospace;
+  font-size: .75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .22s;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.open-btn:hover { background: linear-gradient(135deg, rgba(0,212,245,.24), rgba(155,114,255,.18)); box-shadow: var(--glow); transform: translateY(-2px); }
+
+.code-badge {
+  display: inline-block;
+  font-family: 'Orbitron', monospace;
+  font-size: .82rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+  letter-spacing: .08em;
+}
+.code-badge.warn   { color: var(--yel); }
+.code-badge.urgent { color: var(--red); animation: numBlink .6s step-end infinite; }
+@keyframes numBlink { 0%,100%{opacity:1}50%{opacity:.2} }
+
+/* ══════════════════════════════════════
+   LOG ITEMS
+══════════════════════════════════════ */
+.log-item {
+  padding: 8px 12px;
+  background: var(--bg3);
+  border-radius: 6px;
+  margin-bottom: 4px;
+  font-size: .75rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  border-left: 3px solid var(--border);
+  word-break: break-all;
+}
+.log-item.ok  { border-left-color: var(--grn); }
+.log-item.err { border-left-color: var(--red); }
+.log-item.wrn { border-left-color: var(--yel); }
+
+/* ══════════════════════════════════════
+   USER LIST (admin)
+══════════════════════════════════════ */
+.uitem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.uitem-info { flex: 1; min-width: 0; }
+.uitem-name { font-weight: 700; font-size: .9rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.uitem-sub  { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+.uitem-acts { display: flex; gap: 6px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════
+   MODAL
+══════════════════════════════════════ */
+.modal-ov {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.78);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+  padding: 20px;
+  animation: fadeOv .2s ease;
+}
+@keyframes fadeOv { from{opacity:0}to{opacity:1} }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 30px;
+  max-width: 460px;
+  width: 100%;
+  animation: modalPop .3s cubic-bezier(.34,1.56,.64,1);
+  position: relative;
+}
+@keyframes modalPop { from{opacity:0;transform:scale(.82)}to{opacity:1;transform:scale(1)} }
+
+.modal-title { font-family: 'Orbitron', monospace; font-size: .9rem; color: var(--c); margin-bottom: 20px; letter-spacing: .12em; text-transform: uppercase; padding-right: 30px; }
+.modal-close { position: absolute; top: 18px; right: 18px; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+.modal-close:hover { color: var(--txt); }
+
+/* ══════════════════════════════════════
+   BROADCAST BAR
+══════════════════════════════════════ */
+.bc-bar {
+  background: linear-gradient(135deg, rgba(255,224,51,.12), rgba(255,95,31,.08));
+  border: 1px solid rgba(255,224,51,.28);
+  border-radius: 8px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  display: none;
+  align-items: center;
+  gap: 10px;
+  font-size: .88rem;
+  color: var(--yel);
+}
+.bc-bar.on { display: flex; animation: screenIn .3s ease; }
+
+/* ══════════════════════════════════════
+   SYS OVERLAYS
+══════════════════════════════════════ */
+.sys-ov {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+}
+.sys-ov.maint { background: rgba(0,12,28,.97); }
+.sys-ov.shut  { background: rgba(30,0,5,.97); }
+.sys-ov.show  { display: flex; animation: fadeOv .4s ease; }
+.sys-ov .s-icon  { font-size: 5rem; margin-bottom: 24px; }
+.sys-ov .s-title { font-family: 'Orbitron', monospace; font-size: clamp(1.5rem,4vw,2.2rem); margin-bottom: 12px; }
+.sys-ov .s-msg   { color: var(--muted); max-width: 380px; line-height: 1.7; }
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast {
+  position: fixed;
+  top: 22px;
+  right: 22px;
+  z-index: 9999;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 13px 18px;
+  min-width: 220px;
+  max-width: 320px;
+  font-size: .87rem;
+  animation: toastIn .3s ease;
+  pointer-events: none;
+  line-height: 1.5;
+}
+@keyframes toastIn { from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)} }
+.toast.success { border-left: 3px solid var(--grn); }
+.toast.error   { border-left: 3px solid var(--red); }
+.toast.info    { border-left: 3px solid var(--c); }
+.toast.warning { border-left: 3px solid var(--yel); }
+
+/* ══════════════════════════════════════
+   TOP BAR (logged in)
+══════════════════════════════════════ */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.top-bar-left .tit { font-family: 'Orbitron', monospace; font-size: 1.1rem; color: var(--c); font-weight: 700; }
+.top-bar-left .usr { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+
+/* HELPERS */
+.fb-wrap { margin-top: 8px; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.gap-6 { gap: 6px; }
+.mb-4  { margin-bottom: 4px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-16 { margin-bottom: 16px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.txt-c { text-align: center; }
+.txt-muted { color: var(--muted); font-size: .83rem; }
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+
+/* STAT MINI GRID */
+.stat-mini-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px; margin: 12px 0; }
+.stat-mini { background: var(--bg3); border: 1px solid var(--border); border-radius: 7px; padding: 10px; text-align: center; }
+.stat-mini .v { font-family: 'Orbitron', monospace; font-size: 1.3rem; font-weight: 700; color: var(--c); }
+.stat-mini .l { font-size: .66rem; color: var(--muted); text-transform: uppercase; margin-top: 3px; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+@media (max-width: 540px) {
+  #app { padding: 12px 12px 50px; }
+  .op-pad { grid-template-columns: repeat(4, 1fr); }
+  .menu-grid { grid-template-columns: repeat(2, 1fr); }
+  .num-pad { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ══════════════════════════════════════
+   KEYBOARD HINT
+══════════════════════════════════════ */
+.kbd-hint { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.kbd { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; color: var(--muted); }
+.key { background: var(--bg4); border: 1px solid var(--border2); border-radius: 4px; padding: 2px 6px; font-family: 'Space Mono', monospace; font-size: .68rem; color: var(--txt); }
+</style>
+</head>
+<body>
+
+<!-- SYS OVERLAYS -->
+<div id="sysM" class="sys-ov maint">
+  <div class="s-icon">🚧</div>
+  <div class="s-title">MAINTENANCE</div>
+  <div class="s-msg">現在メンテナンス中です。しばらくお待ちください。</div>
+</div>
+<div id="sysS" class="sys-ov shut">
+  <div class="s-icon">🚨</div>
+  <div class="s-title">SYSTEM HALTED</div>
+  <div class="s-msg">緊急停止中です。管理者にお問い合わせください。</div>
+</div>
+
+<!-- PAUSE OVERLAY -->
+<div id="pauseOv" class="pause-ov">
+  <div class="pause-icon">⏸</div>
+  <div class="pause-title">PAUSED</div>
+  <div class="pause-sub">ゲームを一時停止中</div>
+  <div class="pause-btns">
+    <button class="btn btn-primary btn-full" onclick="resumeGame()">▶ 再開</button>
+    <button class="btn btn-ghost btn-full" onclick="abortGame()">⏹ 中断</button>
+  </div>
+</div>
+
+<!-- DARK MODE TOGGLE -->
+<button class="dark-toggle" id="darkToggle" onclick="toggleDarkMode()" title="ライト/ダークモード">🌙</button>
+
+<div id="app">
+
+  <!-- BROADCAST -->
+  <div id="bcBar" class="bc-bar">
+    <span>📢</span>
+    <span id="bcMsg" style="flex:1;"></span>
+    <button onclick="dismissBC()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
+  </div>
+
+  <!-- ════════ LOGIN ════════ -->
+  <div id="sLogin" class="screen active">
+    <h1 class="game-logo">10 PUZZLE</h1>
+    <p class="logo-sub">数字で10を作れ</p>
+    <div class="card">
+      <div class="card-title">ログイン / Login</div>
+      <div class="inp-grp">
+        <label>ユーザー名</label>
+        <input type="text" id="lName" placeholder="username" autocomplete="off" autocapitalize="none">
+      </div>
+      <div class="inp-grp">
+        <label>PIN</label>
+        <input type="password" id="lPin" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="lErr" class="fb ng" style="display:none;"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="doLogin()">🔓 ログイン</button>
+        <button class="btn btn-ghost"   onclick="go('sReg')">📝 新規登録</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ ADMIN CODE ════════ -->
+  <div id="sAdminCode" class="screen">
+    <h1 class="game-logo">10 PUZZLE</h1>
+    <p class="logo-sub">管理者認証</p>
+    <div class="auth-wrap">
+      <div class="auth-icon">🔐</div>
+      <div class="auth-ttl">ADMIN CODE REQUIRED</div>
+      <div class="auth-desc">
+        別タブでcode.htmlを開き、<br>
+        表示されているコードをここに入力してください。
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">コード入力</div>
+      <div class="mb-8">
+        <div class="code-badge" id="codeBadge">⏱ –:––</div>
+      </div>
+      <div class="inp-grp">
+        <label>管理者コード（10桁）</label>
+        <input type="text" id="acInput"
+          placeholder="XXXXXXXXXX"
+          style="font-family:'Space Mono',monospace;font-size:1.1rem;text-align:center;letter-spacing:.22em;text-transform:uppercase;"
+          maxlength="10"
+          oninput="this.value=this.value.toUpperCase()"
+          onkeydown="if(event.key==='Enter')verifyCode()">
+      </div>
+      <div id="acErr" class="fb ng" style="display:none;"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="verifyCode()">✅ 認証</button>
+        <button class="btn btn-ghost"   onclick="cancelCode()">↩ 戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ REGISTER ════════ -->
+  <div id="sReg" class="screen">
+    <h1 class="game-logo">10 PUZZLE</h1>
+    <p class="logo-sub">新規登録</p>
+    <div class="card">
+      <div class="card-title">📝 新規ユーザー登録</div>
+      <div class="inp-grp">
+        <label>ユーザー名（英数字・記号 最大32文字）</label>
+        <input type="text" id="rName" placeholder="username" autocomplete="off" autocapitalize="none">
+      </div>
+      <div class="inp-grp">
+        <label>PIN</label>
+        <input type="password" id="rPin" placeholder="••••••">
+      </div>
+      <div class="inp-grp">
+        <label>PIN確認</label>
+        <input type="password" id="rPin2" placeholder="••••••" onkeydown="if(event.key==='Enter')doRegister()">
+      </div>
+      <div id="rErr" class="fb ng" style="display:none;"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="doRegister()">✅ 登録</button>
+        <button class="btn btn-ghost"   onclick="go('sLogin')">↩ ログインへ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ MAIN MENU ════════ -->
+  <div id="sMenu" class="screen">
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <div class="tit">10 PUZZLE</div>
+        <div class="usr">👤 <span id="mUser"></span> <span id="mBadge"></span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="doLogout()">🚪 ログアウト</button>
+    </div>
+    <div id="dailyCard" class="daily-card mb-16" style="display:none;">
+      <div class="daily-header">
+        <span style="font-size:1.3rem;">📅</span>
+        <div class="daily-title">デイリーチャレンジ</div>
+        <div class="daily-countdown" id="dailyCountdown"></div>
+      </div>
+      <div class="daily-nums" id="dailyNums">? ? ? ?</div>
+      <div class="daily-status" id="dailyStatus">今日の問題に挑戦しよう！</div>
+      <button class="btn btn-purple btn-sm mt-12" id="dailyBtn" onclick="startDaily()">🎯 挑戦する</button>
+    </div>
+    <div class="menu-grid mb-16">
+      <div class="menu-card" onclick="openDiff('play')">
+        <span class="mc-icon">🎮</span>
+        <div class="mc-title">プレイ</div>
+        <div class="mc-sub">Play</div>
+      </div>
+      <div class="menu-card" onclick="openDiff('practice')">
+        <span class="mc-icon">📚</span>
+        <div class="mc-title">練習</div>
+        <div class="mc-sub">Practice</div>
+      </div>
+      <div class="menu-card" onclick="openDiff('survival')">
+        <span class="mc-icon">💀</span>
+        <div class="mc-title">サバイバル</div>
+        <div class="mc-sub">Survival</div>
+      </div>
+      <div class="menu-card" onclick="openDiff('time')">
+        <span class="mc-icon">⏱️</span>
+        <div class="mc-title">タイムアタック</div>
+        <div class="mc-sub">Time Attack</div>
+      </div>
+      <div class="menu-card" onclick="showHistory()">
+        <span class="mc-icon">📜</span>
+        <div class="mc-title">履歴</div>
+        <div class="mc-sub">History</div>
+      </div>
+      <div class="menu-card" onclick="showMyRank()">
+        <span class="mc-icon">🏆</span>
+        <div class="mc-title">自分の記録</div>
+        <div class="mc-sub">My Records</div>
+      </div>
+      <div class="menu-card" onclick="showGlobal()">
+        <span class="mc-icon">🌐</span>
+        <div class="mc-title">全体ランキング</div>
+        <div class="mc-sub">Global</div>
+      </div>
+      <div class="menu-card" onclick="showSettings()">
+        <span class="mc-icon">⚙️</span>
+        <div class="mc-title">設定</div>
+        <div class="mc-sub">Settings</div>
+      </div>
+      <div class="menu-card" onclick="showFeedback()">
+        <span class="mc-icon">📮</span>
+        <div class="mc-title">報告・アイデア</div>
+        <div class="mc-sub">Report / Idea</div>
+      </div>
+      <div class="menu-card" onclick="showAchievements()">
+        <span class="mc-icon">🏅</span>
+        <div class="mc-title">実績・バッジ</div>
+        <div class="mc-sub">Achievements</div>
+      </div>
+      <div class="menu-card" onclick="showChallenge()">
+        <span class="mc-icon">⚔️</span>
+        <div class="mc-title">フレンド対戦</div>
+        <div class="mc-sub">Challenge</div>
+      </div>
+      <div class="menu-card" id="mAdmin" style="display:none;position:relative;" onclick="showAdmin()">
+        <span class="mc-icon">🛡️</span>
+        <div class="mc-title">管理パネル</div>
+        <div class="mc-sub">Admin Panel</div>
+        <span id="mAdmFbBadge" class="badge badge-ban" style="display:none;position:absolute;top:8px;right:10px;">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ FEEDBACK (USER) ════════ -->
+  <div id="sFeedback" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">📮 報告・アイデア</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div class="card mb-16">
+      <div class="card-title">新規送信</div>
+      <div class="inp-grp">
+        <label>種類</label>
+        <div class="btn-row">
+          <button class="btn btn-ghost btn-sm" id="fbTypeBug"  onclick="setFbType('bug')">🐞 バグ報告</button>
+          <button class="btn btn-ghost btn-sm" id="fbTypeIdea" onclick="setFbType('idea')">💡 アイデア</button>
+        </div>
+      </div>
+      <div class="inp-grp"><label>タイトル</label><input type="text" id="fbTitle" maxlength="80" placeholder="短いタイトル"></div>
+      <div class="inp-grp"><label>詳細</label><textarea id="fbBody" rows="5" maxlength="2000" style="resize:vertical;" placeholder="再現手順や提案内容など"></textarea></div>
+      <button class="btn btn-primary btn-sm" onclick="submitFeedback()">📤 送信</button>
+    </div>
+    <div class="card">
+      <div class="card-title">📜 自分の送信履歴</div>
+      <div id="fbMine"></div>
+    </div>
+  </div>
+
+  <!-- ════════ DIFFICULTY ════════ -->
+  <div id="sDiff" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">難易度を選択</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div class="diff-grid">
+      <div class="diff-card d1" data-pts="10pts" onclick="selDiff('1')">
+        <div class="dc-name" style="color:var(--grn);">🌿 かんたん</div>
+        <div class="dc-ops">+ −</div>
+        <div class="dc-desc">足し算・引き算のみ。答えが多い。</div>
+      </div>
+      <div class="diff-card d2" data-pts="20pts" onclick="selDiff('2')">
+        <div class="dc-name" style="color:var(--c);">⚡ ふつう</div>
+        <div class="dc-ops">+ − ×</div>
+        <div class="dc-desc">バランス型。まずはここから。</div>
+      </div>
+      <div class="diff-card d3" data-pts="40pts" onclick="selDiff('3')">
+        <div class="dc-name" style="color:var(--c2);">🔥 むずかしい</div>
+        <div class="dc-ops">+ − × ÷</div>
+        <div class="dc-desc">答えが限られる。高得点狙いに。</div>
+      </div>
+      <div class="diff-card d4" data-pts="100pts" onclick="selDiff('4')">
+        <div class="dc-name" style="color:var(--red);">💥 きわめて</div>
+        <div class="dc-ops">+ − × ÷</div>
+        <div class="dc-desc">解が1つだけ。究極の挑戦。</div>
+      </div>
+    </div>
+    <div id="modeConf" class="card" style="display:none;">
+      <div class="card-title" id="modeConfTitle">設定</div>
+      <div id="modeConfFields"></div>
+      <button class="btn btn-primary btn-full mt-12" onclick="launchGame()">🚀 スタート</button>
+    </div>
+  </div>
+
+  <!-- ════════ GAME ════════ -->
+  <div id="sGame" class="screen">
+    <div class="game-hdr">
+      <div class="gstat"><div class="v" id="gScore">0</div><div class="l">SCORE</div></div>
+      <div class="gstat"><div class="v" id="gQ">1</div><div class="l">問題</div></div>
+      <div class="gstat"><div class="combo-pill" id="combo">× 0</div></div>
+      <div class="gstat"><div class="v" id="gMiss">0</div><div class="l">MISS</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="pauseGame()" title="一時停止" id="pauseBtn">⏸</button>
+      <button class="btn btn-ghost btn-sm" onclick="abortGame()" title="中断">⏹</button>
+    </div>
+
+    <div id="tBarWrap" class="t-bar-wrap" style="display:none;">
+      <div id="tBar" class="t-bar" style="width:100%;"></div>
+    </div>
+
+    <div class="prog-wrap">
+      <div id="progBar" class="prog-bar" style="width:0%;"></div>
+    </div>
+
+    <div class="prob-wrap">
+      <div id="probNums" class="prob-nums"></div>
+    </div>
+
+    <div id="exprBox" class="expr-box">—</div>
+
+    <div id="numPad" class="num-pad"></div>
+    <div id="opPad"  class="op-pad"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-danger btn-sm" onclick="clearExpr()">⌫ クリア</button>
+      <button class="btn btn-green"         onclick="submitExpr()">✅ 答える</button>
+      <button class="btn btn-ghost btn-sm"  onclick="skipProb()">⏭ スキップ</button>
+      <button class="hint-btn" id="hintBtn" onclick="useHint()">💡 ヒント <span id="hintCount" style="font-family:'Space Mono',monospace;font-size:.7rem;opacity:.7;">×2</span></button>
+    </div>
+
+    <div id="fbWrap" class="fb-wrap"></div>
+
+    <div class="kbd-hint">
+      <div class="kbd"><span class="key">Enter</span> 答える</div>
+      <div class="kbd"><span class="key">⌫</span> クリア</div>
+      <div class="kbd"><span class="key">P</span> 一時停止</div>
+      <div class="kbd"><span class="key">Esc</span> 中断/再開</div>
+    </div>
+  </div>
+
+  <!-- ════════ RESULT ════════ -->
+  <div id="sResult" class="screen">
+    <div class="result-stage">
+      <div id="rMode" class="result-mode"></div>
+      <div id="rScore" class="result-score">0</div>
+      <div id="rGrid" class="result-grid"></div>
+      <div id="rPractice"></div>
+      <div class="btn-row mt-16">
+        <button class="btn btn-primary" onclick="go('sMenu')">🏠 メニューへ</button>
+        <button class="btn btn-ghost"   id="rAgain">🔄 もう一度</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ HISTORY ════════ -->
+  <div id="sHistory" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">📜 履歴</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div id="histList"></div>
+  </div>
+
+  <!-- ════════ MY RANKINGS ════════ -->
+  <div id="sMyRank" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">🏆 自分の記録</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div class="tabs" id="myTabs">
+      <button class="tab active" onclick="myTab(this,'play')">🎮 プレイ</button>
+      <button class="tab" onclick="myTab(this,'survival')">💀 サバイバル</button>
+      <button class="tab" onclick="myTab(this,'time')">⏱ タイム</button>
+    </div>
+    <div id="myRankList"></div>
+  </div>
+
+  <!-- ════════ GLOBAL RANKINGS ════════ -->
+  <div id="sGlobal" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">🌐 全体ランキング</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div class="tabs" id="glTabs">
+      <button class="tab active" onclick="glTab(this,'play')">🎮 プレイ</button>
+      <button class="tab" onclick="glTab(this,'survival')">💀 サバイバル</button>
+      <button class="tab" onclick="glTab(this,'time')">⏱ タイム</button>
+      <button class="tab" onclick="glTab(this,'overview')">📊 概要</button>
+    </div>
+    <div id="glRankList"></div>
+  </div>
+
+  <!-- ════════ SETTINGS ════════ -->
+  <div id="sSettings" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">⚙️ 設定</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">🔑 PIN変更</div>
+      <div class="inp-grp"><label>現在のPIN</label><input type="password" id="sCurPin" placeholder="••••••"></div>
+      <div class="inp-grp"><label>新しいPIN</label><input type="password" id="sNewPin" placeholder="••••••"></div>
+      <div class="inp-grp"><label>PIN確認</label><input type="password" id="sCnfPin" placeholder="••••••"></div>
+      <button class="btn btn-primary btn-sm" onclick="changePin()">変更する</button>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">🌙 テーマ</div>
+      <p class="txt-muted mb-8">ダークモード / ライトモードを切り替えます。</p>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" onclick="if(document.body.classList.contains('light-mode'))toggleDarkMode()">🌙 ダーク</button>
+        <button class="btn btn-ghost btn-sm" onclick="if(!document.body.classList.contains('light-mode'))toggleDarkMode()">☀️ ライト</button>
+      </div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">🌐 言語 / Language</div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="setLang('jp')">🇯🇵 日本語</button>
+        <button class="btn btn-ghost" onclick="setLang('en')">🇬🇧 English</button>
+      </div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">🕐 ログイン履歴</div>
+      <div id="sLoginLogs"></div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">🔊 効果音</div>
+      <p class="txt-muted mb-8">正解／不正解／コンボなどに効果音を鳴らします。</p>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" id="sSoundOn"  onclick="setSound(true)">🔊 ON</button>
+        <button class="btn btn-ghost btn-sm" id="sSoundOff" onclick="setSound(false)">🔈 OFF</button>
+      </div>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">⚠️ アカウント初期化</div>
+      <p class="txt-muted mb-8">すべてのゲームデータを削除します。PINは保持されます。</p>
+      <button class="btn btn-danger btn-sm" onclick="showReset()">🗑️ データを初期化する</button>
+    </div>
+
+    <div class="card" id="sDelAcctCard">
+      <div class="card-title" style="color:var(--red);">🗑️ アカウントを完全削除</div>
+      <p class="txt-muted mb-8">アカウントとすべての記録を削除します。元に戻せません（管理者のゴミ箱には入りません）。</p>
+      <button class="btn btn-danger btn-sm" onclick="showDelAcct()">🗑️ 完全削除する</button>
+    </div>
+  </div>
+
+  <!-- ════════ ADMIN ════════ -->
+  <div id="sAdmin" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">🛡️ 管理パネル</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div class="tabs" id="admTabs">
+      <button class="tab active" onclick="admTab(this,'users')">👥 ユーザー</button>
+      <button class="tab" onclick="admTab(this,'rankings')">🏆 ランキング</button>
+      <button class="tab" onclick="admTab(this,'logs')">📋 ログ</button>
+      <button class="tab" onclick="admTab(this,'feedback')">📮 フィードバック<span id="admTabFbBadge" class="badge badge-ban" style="display:none;margin-left:6px;">0</span></button>
+      <button class="tab" onclick="admTab(this,'system')">⚙️ システム</button>
+    </div>
+    <div id="admContent"></div>
+  </div>
+
+  <!-- ════════ ACHIEVEMENTS ════════ -->
+  <div id="sAchievements" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">🏅 実績・バッジ</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div id="achieveList"></div>
+  </div>
+
+  <!-- ════════ CHALLENGE ════════ -->
+  <div id="sChallenge" class="screen">
+    <div class="flex-between mb-16">
+      <div class="card-title" style="margin-bottom:0;">⚔️ フレンド対戦</div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sMenu')">↩ 戻る</button>
+    </div>
+    <div id="challengeContent"></div>
+  </div>
+
+</div><!-- #app -->
+
+<!-- MODAL -->
+<div id="mOv" class="modal-ov" style="display:none;" onclick="if(event.target===this)closeMod()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeMod()">✕</button>
+    <div class="modal-title" id="mTitle"></div>
+    <div id="mBody"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ════════════════════════════════════════════
+// FAST EXPRESSION EVALUATOR
+// ════════════════════════════════════════════
+function seval(s) {
+  s = String(s).replace(/\s+/g, '').replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+  let i = 0;
+  function parseExpr() {
+    let v = parseTerm();
+    while (i < s.length && (s[i] === '+' || s[i] === '-')) {
+      const op = s[i++]; const r = parseTerm();
+      v = (op === '+') ? v + r : v - r;
+    }
+    return v;
+  }
+  function parseTerm() {
+    let v = parseFactor();
+    while (i < s.length && (s[i] === '*' || s[i] === '/')) {
+      const op = s[i++]; const r = parseFactor();
+      if (op === '*') v = v * r;
+      else { if (r === 0) throw new Error('division by zero'); v = v / r; }
+    }
+    return v;
+  }
+  function parseFactor() {
+    if (s[i] === '+') { i++; return parseFactor(); }
+    if (s[i] === '-') { i++; return -parseFactor(); }
+    if (s[i] === '(') {
+      i++; const v = parseExpr();
+      if (s[i] !== ')') throw new Error('syntax');
+      i++; return v;
+    }
+    let n = '';
+    while (i < s.length && (s[i] >= '0' && s[i] <= '9' || s[i] === '.')) n += s[i++];
+    if (n === '') throw new Error('syntax');
+    return parseFloat(n);
+  }
+  const v = parseExpr();
+  if (i !== s.length) throw new Error('syntax');
+  if (!isFinite(v)) throw new Error('syntax');
+  return v;
+}
+
+// ════════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════════
+const ADMIN_NAME = 'admin0000';
+// 管理者PINは平文では保存しない。PBKDF2-SHA256(200000回) で派生したハッシュのみソースに含める。
+// 元のPINは（万一同梱しても）総当たりに 数十秒〜数分 かかるため "わかりにくく" なる。
+const ADMIN_BOOTSTRAP = {
+  algo:   'pbkdf2-sha256-200000',
+  salt:   '1gSRCbn3AZQZIYusPyApWQ==',
+  iter:   200000,
+  hash:   'M2h0L8iOPXgefru1wgueUQSAW2ldNNLOynu5EKg3n3k=',
+};
+const CODE_URL   = 'code.html';
+const CODE_TTL   = 5 * 60 * 1000;
+const CODE_ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+// ════════════════════════════════════════════
+// DB — localStorage as data/account/*.json
+// ════════════════════════════════════════════
+const DB = {
+  _k: k => 'make10_' + k,
+  _r(k)  { try { return JSON.parse(localStorage.getItem(this._k(k)) || 'null'); } catch { return null; } },
+  _w(k,v){ localStorage.setItem(this._k(k), JSON.stringify(v)); },
+
+  getUsers()   { return this._r('users')    || {}; },
+  saveUsers(u) { this._w('users', u); },
+  getUser(n)   { return this.getUsers()[n]  || null; },
+  saveUser(u)  { const d = this.getUsers(); d[u.name] = u; this.saveUsers(d); },
+
+  getTrash()   { return this._r('trash')    || {}; },
+  saveTrash(t) { this._w('trash', t); },
+
+  getSettings()   { return this._r('settings') || defaultSettings(); },
+  saveSettings(s) { this._w('settings', s); },
+
+  deleteUser(n) {
+    const u = this.getUsers(), t = this.getTrash();
+    if (!u[n]) return;
+    u[n]._deletedAt = Date.now(); t[n] = u[n]; delete u[n];
+    this.saveUsers(u); this.saveTrash(t);
+  },
+  restoreUser(n) {
+    const t = this.getTrash(), u = this.getUsers();
+    if (!t[n]) return;
+    delete t[n]._deletedAt; u[n] = t[n]; delete t[n];
+    this.saveUsers(u); this.saveTrash(t);
+  },
+
+  addLog(e) {
+    const l = this._r('logs') || [];
+    l.push(e); if (l.length > 600) l.splice(0, l.length - 600);
+    this._w('logs', l);
+  },
+  getLogs()      { return this._r('logs')  || []; },
+
+  addCheat(e) {
+    const l = this._r('cheat') || [];
+    l.push(e); if (l.length > 400) l.splice(0, l.length - 400);
+    this._w('cheat', l);
+  },
+  getCheats()    { return this._r('cheat') || []; },
+
+  // admin_code.json equivalent
+  getCode()  { return this._r('adminCode'); },
+  setCode(d) { this._w('adminCode', d); },
+
+  // ── Feedback (bug reports & ideas) ──
+  getFeedback()   { return this._r('feedback') || []; },
+  saveFeedback(l) { this._w('feedback', l); },
+  addFeedback(e)  {
+    const l = this.getFeedback();
+    e.id = 'fb_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+    e.createdAt = Date.now();
+    e.read = false;
+    l.unshift(e);
+    if (l.length > 500) l.length = 500;
+    this.saveFeedback(l);
+    return e.id;
+  },
+  markFeedbackRead(id) {
+    const l = this.getFeedback();
+    const it = l.find(x => x.id === id);
+    if (it) { it.read = true; this.saveFeedback(l); }
+  },
+  markAllFeedbackRead() {
+    const l = this.getFeedback();
+    l.forEach(x => x.read = true);
+    this.saveFeedback(l);
+  },
+  deleteFeedback(id) {
+    this.saveFeedback(this.getFeedback().filter(x => x.id !== id));
+  },
+  unreadFeedbackCount() {
+    return this.getFeedback().filter(x => !x.read).length;
+  },
+};
+
+function defaultSettings() {
+  return { broadcast:{ msg:'', createdAt:0 }, maintenance:false, shutdown:false, forceLogoutId:0 };
+}
+
+// ════════════════════════════════════════════
+// CRYPTO
+// ════════════════════════════════════════════
+async function hashPin(pin, salt) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin + salt));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function genSalt() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function _b64ToU8(b64) {
+  const bin = atob(b64);
+  const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+function _u8ToB64(u8) {
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  return btoa(s);
+}
+async function pbkdf2Hash(pin, saltB64, iter) {
+  const key  = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin),
+    { name: 'PBKDF2' }, false, ['deriveBits']);
+  const salt = _b64ToU8(saltB64);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, key, 256);
+  return _u8ToB64(new Uint8Array(bits));
+}
+// 現/旧フォーマット両対応のPIN照合
+async function verifyPin(user, pin) {
+  if (!user) return false;
+  if (user.algo === 'pbkdf2-sha256' && user.iter) {
+    return (await pbkdf2Hash(pin, user.salt, user.iter)) === user.pinHash;
+  }
+  return (await hashPin(pin, user.salt)) === user.pinHash;
+}
+// PINハッシュを更新（新規・変更時は常に強い PBKDF2 を使う）
+async function setPinOnUser(user, pin) {
+  const saltU8 = crypto.getRandomValues(new Uint8Array(16));
+  const saltB64 = _u8ToB64(saltU8);
+  const iter = 200000;
+  user.algo    = 'pbkdf2-sha256';
+  user.iter    = iter;
+  user.salt    = saltB64;
+  user.pinHash = await pbkdf2Hash(pin, saltB64, iter);
+  return user;
+}
+async function mkUser(name, pin, isAdmin = false) {
+  const u = {
+    name,
+    salt: '', pinHash: '', algo: 'pbkdf2-sha256', iter: 200000,
+    history:[], survival:[], time:[],
+    loginLogs:[], loginAttempts:0, lockUntil:0,
+    isAdmin, isCoAdmin: false, lang:'jp',
+    lastForceSeen:0, broadcastSeen:[],
+    banned:false, banUntil:0, banReason:'',
+    cheatHits:0, lastCheatAt:0,
+    sound:true,
+  };
+  await setPinOnUser(u, pin);
+  return u;
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+(async () => {
+  if (!DB.getUser(ADMIN_NAME)) {
+    // 元のPINは持っていないので、事前計算した PBKDF2 ハッシュをそのまま埋め込む
+    const a = {
+      name: ADMIN_NAME,
+      salt: ADMIN_BOOTSTRAP.salt,
+      pinHash: ADMIN_BOOTSTRAP.hash,
+      algo: 'pbkdf2-sha256',
+      iter: ADMIN_BOOTSTRAP.iter,
+      history:[], survival:[], time:[],
+      loginLogs:[], loginAttempts:0, lockUntil:0,
+      isAdmin:true, isCoAdmin:false, lang:'jp',
+      lastForceSeen:0, broadcastSeen:[],
+      banned:false, banUntil:0, banReason:'',
+      cheatHits:0, lastCheatAt:0,
+      sound:true,
+    };
+    DB.saveUser(a);
+  } else {
+    // 既存の旧形式管理者を最新の安全な形式に置き換える（PIN は元のまま）
+    const cur = DB.getUser(ADMIN_NAME);
+    if (cur.algo !== 'pbkdf2-sha256' || cur.iter !== ADMIN_BOOTSTRAP.iter) {
+      cur.salt = ADMIN_BOOTSTRAP.salt;
+      cur.pinHash = ADMIN_BOOTSTRAP.hash;
+      cur.algo = 'pbkdf2-sha256';
+      cur.iter = ADMIN_BOOTSTRAP.iter;
+      cur.isAdmin = true;
+      DB.saveUser(cur);
+    }
+  }
+  const s = DB.getSettings();
+  DB.saveSettings({ ...defaultSettings(), ...s });
+})();
+
+// ════════════════════════════════════════════
+// ADMIN CODE
+// ════════════════════════════════════════════
+let codeRec    = null; // { code, createdAt(ms), expiresAt(ms) }
+let codeIv     = null;
+let pendAdmin  = null;
+
+function genCode(n = 10) {
+  return Array.from(crypto.getRandomValues(new Uint8Array(n)))
+    .map(b => CODE_ALPHA[b % CODE_ALPHA.length]).join('');
+}
+
+function issueCode() {
+  const now = Date.now();
+  codeRec = { code: genCode(), createdAt: now, expiresAt: now + CODE_TTL };
+  DB.setCode({ code: codeRec.code, created_at: codeRec.createdAt/1000, expires_at: codeRec.expiresAt/1000 });
+}
+
+function openCodePage() {
+  window.open(CODE_URL, 'make10_code', 'width=620,height=500,menubar=no,toolbar=no,location=no,resizable=yes');
+  document.getElementById('codeHint').textContent = '✓ 新しいウィンドウにコードが表示されます';
+}
+
+function startCodeTimer() {
+  clearInterval(codeIv);
+  const badge = document.getElementById('codeBadge');
+  codeIv = setInterval(() => {
+    if (!codeRec) { clearInterval(codeIv); return; }
+    const rem = Math.max(0, Math.floor((codeRec.expiresAt - Date.now()) / 1000));
+    const m = Math.floor(rem / 60), s = rem % 60;
+    badge.textContent = `⏱ ${m}:${String(s).padStart(2,'0')}`;
+    badge.className = rem <= 30 ? 'code-badge urgent' : rem <= 90 ? 'code-badge warn' : 'code-badge';
+    if (rem <= 0) { clearInterval(codeIv); badge.textContent = '⏱ 期限切れ'; badge.className = 'code-badge urgent'; }
+  }, 500);
+}
+
+// ════════════════════════════════════════════
+// ANTI-CHEAT ENGINE
+// ════════════════════════════════════════════
+const AC = {
+  lastAt: 0,
+  times: [],
+  MIN_MS: 750,      // 最短解答間隔
+  WINDOW: 10000,    // 監視ウィンドウ
+  LIMIT: 16,        // ウィンドウ内上限
+  AUTO_BAN: 5,      // この回数でBAN
+  BAN_SEC: 3600,
+
+  reset() { this.lastAt = 0; this.times = []; },
+
+  check() {
+    const now = Date.now();
+    if (now - this.lastAt < this.MIN_MS) return 'too_fast';
+    this.times = this.times.filter(t => now - t < this.WINDOW);
+    this.times.push(now);
+    if (this.times.length > this.LIMIT) return 'rapid';
+    this.lastAt = now;
+    return null;
+  },
+
+  log(user, mode, diff, reason, expr, nums) {
+    if (user.isAdmin) return false;
+    DB.addCheat({ time: new Date().toISOString(), user: user.name, mode, diff, reason,
+      expr: String(expr).slice(0,120), nums });
+    user.cheatHits = (user.cheatHits || 0) + 1;
+    user.lastCheatAt = Date.now();
+    let banned = false;
+    if (user.cheatHits >= this.AUTO_BAN) {
+      user.banned = true;
+      user.banUntil = Date.now() + this.BAN_SEC * 1000;
+      user.banReason = 'auto:' + reason;
+      user.cheatHits = 0;
+      banned = true;
+      DB.addCheat({ time: new Date().toISOString(), user: user.name, mode, diff, reason: 'AUTO_BAN', expr:'', nums });
+    }
+    DB.saveUser(user);
+    return banned;
+  }
+};
+
+// ════════════════════════════════════════════
+// APP STATE
+// ════════════════════════════════════════════
+let CU = null;   // current user
+let GS = null;   // game state
+let admCurTab = 'users';
+
+// ════════════════════════════════════════════
+// SCREEN ROUTING
+// ════════════════════════════════════════════
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  checkSysState();
+}
+
+function checkSysState() {
+  const s = DB.getSettings();
+  const mEl = document.getElementById('sysM');
+  const sEl = document.getElementById('sysS');
+  const active = document.querySelector('.screen.active');
+  const isAuth = active && ['sLogin','sReg','sAdminCode'].includes(active.id);
+  if (!isAuth && !CU?.isAdmin) {
+    if (s.shutdown)     { sEl.classList.add('show'); mEl.classList.remove('show'); }
+    else if (s.maintenance) { mEl.classList.add('show'); sEl.classList.remove('show'); }
+    else { mEl.classList.remove('show'); sEl.classList.remove('show'); }
+  } else { mEl.classList.remove('show'); sEl.classList.remove('show'); }
+}
+
+// ════════════════════════════════════════════
+// LOGIN / REGISTER / LOGOUT
+// ════════════════════════════════════════════
+async function doLogin() {
+  const name = document.getElementById('lName').value.trim();
+  const pin  = document.getElementById('lPin').value.trim();
+  const errEl = document.getElementById('lErr');
+  errEl.style.display = 'none';
+
+  if (!name || !pin) { showFbEl(errEl, '⚠ 名前またはPINが空です'); return; }
+
+  const user = DB.getUser(name);
+  if (!user) { showFbEl(errEl, '⚠ ユーザーが見つかりません'); return; }
+
+  // BAN
+  if (user.banned) {
+    if (user.banUntil > 0 && Date.now() >= user.banUntil) {
+      user.banned = false; user.banUntil = 0; user.banReason = ''; DB.saveUser(user);
+    } else {
+      const r = user.banUntil > 0 ? `残り${Math.ceil((user.banUntil-Date.now())/1000)}秒` : '永久';
+      showFbEl(errEl, `🚫 BANされています（${r}）: ${user.banReason||''}`); return;
+    }
+  }
+
+  // LOCK
+  if (Date.now() < (user.lockUntil || 0)) {
+    showFbEl(errEl, `🔒 ロック中 残り${Math.ceil(((user.lockUntil||0)-Date.now())/1000)}秒`); return;
+  }
+
+  // VERIFY PIN
+  const ok = await verifyPin(user, pin);
+  if (!ok) {
+    user.loginAttempts = (user.loginAttempts || 0) + 1;
+    user.loginLogs = user.loginLogs || [];
+    user.loginLogs.push({ time: new Date().toISOString(), result: 'fail' });
+    if (user.loginAttempts >= 3) { user.lockUntil = Date.now() + 60000; user.loginAttempts = 0; }
+    DB.saveUser(user);
+    if (user.isAdmin) DB.addLog({ time: new Date().toISOString(), action: 'admin_pin_fail', user: name });
+    showFbEl(errEl, '⚠ PINが違います'); return;
+  }
+
+  // ADMIN → CODE FLOW
+  if (user.isAdmin) {
+    pendAdmin = user; issueCode();
+    document.getElementById('acInput').value = '';
+    document.getElementById('acErr').style.display = 'none';
+    go('sAdminCode'); startCodeTimer(); return;
+  }
+
+  // NORMAL USER
+  const s = DB.getSettings();
+  if (s.shutdown)    { showFbEl(errEl, '🚨 緊急停止中です'); return; }
+  if (s.maintenance) { showFbEl(errEl, '🚧 メンテナンス中です'); return; }
+
+  finishLogin(user);
+}
+
+function finishLogin(user) {
+  user.loginAttempts = 0;
+  user.loginLogs = user.loginLogs || [];
+  user.loginLogs.push({ time: new Date().toISOString(), result: 'success' });
+  DB.saveUser(user);
+  CU = user;
+  document.getElementById('lName').value = '';
+  document.getElementById('lPin').value  = '';
+  refreshMenu();
+  checkBC();
+  checkForce();
+  go('sMenu');
+  toast(`ようこそ、${user.name}！`, 'success');
+}
+
+function verifyCode() {
+  const input = document.getElementById('acInput').value.trim().toUpperCase();
+  const errEl = document.getElementById('acErr');
+  errEl.style.display = 'none';
+
+  if (!codeRec) { showFbEl(errEl, 'コードデータがありません。再ログインしてください。'); return; }
+  if (Date.now() >= codeRec.expiresAt) {
+    DB.addLog({ time: new Date().toISOString(), action: 'admin_code_expired', user: pendAdmin?.name });
+    showFbEl(errEl, '⏰ コードの有効期限が切れました。再ログインしてください。');
+    codeRec = null; clearInterval(codeIv); return;
+  }
+  if (input !== codeRec.code) {
+    DB.addLog({ time: new Date().toISOString(), action: 'admin_code_fail', user: pendAdmin?.name });
+    showFbEl(errEl, '❌ コードが違います'); return;
+  }
+
+  clearInterval(codeIv);
+  DB.addLog({ time: new Date().toISOString(), action: 'admin_login_ok', user: pendAdmin?.name });
+  DB.setCode(null);
+  codeRec = null;
+  const user = pendAdmin; pendAdmin = null;
+  finishLogin(user);
+}
+
+function cancelCode() {
+  clearInterval(codeIv); codeRec = null; pendAdmin = null;
+  go('sLogin');
+}
+
+async function doRegister() {
+  const name  = document.getElementById('rName').value.trim();
+  const pin   = document.getElementById('rPin').value.trim();
+  const pin2  = document.getElementById('rPin2').value.trim();
+  const errEl = document.getElementById('rErr');
+  errEl.style.display = 'none';
+
+  if (!name || !pin) { showFbEl(errEl, '⚠ 名前またはPINが空です'); return; }
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.\-]{0,31}$/.test(name)) { showFbEl(errEl, '⚠ 名前が不正（英数字 最大32文字）'); return; }
+  if (name === ADMIN_NAME) { showFbEl(errEl, '⚠ そのユーザー名は使用できません'); return; }
+  if (pin !== pin2) { showFbEl(errEl, '⚠ PIN不一致'); return; }
+  if (DB.getUser(name)) { showFbEl(errEl, '⚠ すでに存在します'); return; }
+
+  DB.saveUser(await mkUser(name, pin, false));
+  toast('✅ 登録完了！ログインしてください', 'success');
+  go('sLogin');
+}
+
+function doLogout() {
+  if (GS?.timerIv) clearInterval(GS.timerIv);
+  CU = null; GS = null;
+  go('sLogin');
+}
+
+// ════════════════════════════════════════════
+// MENU
+// ════════════════════════════════════════════
+function isAdminLike(u) { return !!(u && (u.isAdmin || u.isCoAdmin)); }
+function isMainAdmin(u) { return !!(u && u.name === ADMIN_NAME); }
+
+function refreshMenu() {
+  if (!CU) return;
+  document.getElementById('mUser').textContent = CU.name;
+  let badge = '';
+  if (CU.isAdmin)        badge = '<span class="badge badge-admin">ADMIN</span>';
+  else if (CU.isCoAdmin) badge = '<span class="badge badge-admin">CO-ADMIN</span>';
+  document.getElementById('mBadge').innerHTML  = badge;
+  document.getElementById('mAdmin').style.display = isAdminLike(CU) ? 'block' : 'none';
+  // ゴミ箱型のお気に入り削除UIは「自分の」アカウントが管理者なら隠す
+  const delCard = document.getElementById('sDelAcctCard');
+  if (delCard) delCard.style.display = isMainAdmin(CU) ? 'none' : '';
+  refreshAdmFbBadge();
+  applySoundButtons();
+}
+
+function checkBC() {
+  const s = DB.getSettings(); const bc = s.broadcast || {};
+  if (!bc.msg) return;
+  const seen = CU?.broadcastSeen || [];
+  if (seen.includes(bc.msg)) return;
+  document.getElementById('bcMsg').textContent = bc.msg;
+  document.getElementById('bcBar').classList.add('on');
+}
+
+function dismissBC() {
+  document.getElementById('bcBar').classList.remove('on');
+  if (!CU) return;
+  CU.broadcastSeen = CU.broadcastSeen || [];
+  const msg = DB.getSettings().broadcast?.msg;
+  if (msg && !CU.broadcastSeen.includes(msg)) CU.broadcastSeen.push(msg);
+  DB.saveUser(CU);
+}
+
+function checkForce() {
+  if (!CU) return;
+  const fid = DB.getSettings().forceLogoutId || 0;
+  if ((CU.lastForceSeen || 0) < fid) {
+    CU.lastForceSeen = fid; DB.saveUser(CU);
+    doLogout(); toast('⚠ 強制ログアウトされました', 'warning');
+  }
+}
+
+// ════════════════════════════════════════════
+// PUZZLE ENGINE
+// ════════════════════════════════════════════
+const DCONF = {
+  '1': { score:10,  ops:['+','-'],           minSol:3,  maxSol:9999 },
+  '2': { score:20,  ops:['+','-','*'],       minSol:2,  maxSol:100  },
+  '3': { score:40,  ops:['+','-','*','/'],   minSol:1,  maxSol:12   },
+  '4': { score:100, ops:['+','-','*','/'],   minSol:1,  maxSol:1    },
+};
+
+// ---- Fast numeric evaluator (no Function/eval) ----
+// Evaluates a flat expression like [n, op, n, op, n, ...] honoring */ before +-.
+// Returns null on division by zero or non-finite.
+function evFlat(toks) {
+  // toks: [num, op, num, op, num, ...]
+  // First pass: handle * and /
+  const nums = [toks[0]];
+  const ops  = [];
+  for (let i = 1; i < toks.length; i += 2) {
+    const op = toks[i], n = toks[i + 1];
+    if (op === '*' || op === '/') {
+      const prev = nums[nums.length - 1];
+      if (op === '/') {
+        if (n === 0) return null;
+        nums[nums.length - 1] = prev / n;
+      } else {
+        nums[nums.length - 1] = prev * n;
+      }
+    } else {
+      ops.push(op);
+      nums.push(n);
+    }
+  }
+  // Second pass: + and -
+  let r = nums[0];
+  for (let i = 0; i < ops.length; i++) {
+    r = ops[i] === '+' ? r + nums[i + 1] : r - nums[i + 1];
+  }
+  return r;
+}
+
+// 7 bracket forms — each entry = [evaluator, exprBuilder]
+const BRACKET_FORMS = [
+  [
+    (a,o1,b,o2,c,o3,d) => evFlat([a,o1,b,o2,c,o3,d]),
+    (a,o1,b,o2,c,o3,d) => `${a}${o1}${b}${o2}${c}${o3}${d}`
+  ],
+  [
+    (a,o1,b,o2,c,o3,d) => { const x = evFlat([a,o1,b]); return x===null ? null : evFlat([x,o2,c,o3,d]); },
+    (a,o1,b,o2,c,o3,d) => `(${a}${o1}${b})${o2}${c}${o3}${d}`
+  ],
+  [
+    (a,o1,b,o2,c,o3,d) => { const x = evFlat([a,o1,b,o2,c]); return x===null ? null : evFlat([x,o3,d]); },
+    (a,o1,b,o2,c,o3,d) => `(${a}${o1}${b}${o2}${c})${o3}${d}`
+  ],
+  [
+    (a,o1,b,o2,c,o3,d) => { const x = evFlat([b,o2,c]); return x===null ? null : evFlat([a,o1,x,o3,d]); },
+    (a,o1,b,o2,c,o3,d) => `${a}${o1}(${b}${o2}${c})${o3}${d}`
+  ],
+  [
+    (a,o1,b,o2,c,o3,d) => { const x = evFlat([b,o2,c,o3,d]); return x===null ? null : evFlat([a,o1,x]); },
+    (a,o1,b,o2,c,o3,d) => `${a}${o1}(${b}${o2}${c}${o3}${d})`
+  ],
+  [
+    (a,o1,b,o2,c,o3,d) => {
+      const u = evFlat([c,o3,d]); if (u===null) return null;
+      const v = evFlat([b,o2,u]); if (v===null) return null;
+      return evFlat([a,o1,v]);
+    },
+    (a,o1,b,o2,c,o3,d) => `${a}${o1}(${b}${o2}(${c}${o3}${d}))`
+  ],
+  [
+    (a,o1,b,o2,c,o3,d) => {
+      const x = evFlat([a,o1,b]); if (x===null) return null;
+      const y = evFlat([c,o3,d]); if (y===null) return null;
+      return evFlat([x,o2,y]);
+    },
+    (a,o1,b,o2,c,o3,d) => `(${a}${o1}${b})${o2}(${c}${o3}${d})`
+  ],
+];
+
+// Generate unique permutations of 4 numbers (handles duplicates).
+function uniqPerms(a) {
+  const out = [];
+  const used = [false,false,false,false];
+  const cur  = [0,0,0,0];
+  const sorted = [...a].sort((x,y)=>x-y);
+  (function rec(depth) {
+    if (depth === 4) { out.push([cur[0],cur[1],cur[2],cur[3]]); return; }
+    let prev = null;
+    for (let i = 0; i < 4; i++) {
+      if (used[i]) continue;
+      if (prev !== null && sorted[i] === prev) continue;
+      used[i] = true; cur[depth] = sorted[i]; prev = sorted[i];
+      rec(depth+1);
+      used[i] = false;
+    }
+  })(0);
+  return out;
+}
+
+const _solveCache = new Map();
+function solveAll(nums, diff) {
+  const key = diff + '|' + [...nums].sort((a,b)=>a-b).join(',');
+  const cached = _solveCache.get(key);
+  if (cached) return cached;
+
+  const ops = DCONF[diff].ops;
+  const found = new Set();
+  const perms = uniqPerms(nums);
+
+  for (let pi = 0; pi < perms.length; pi++) {
+    const [a,b,c,d] = perms[pi];
+    for (let i = 0; i < ops.length; i++) {
+      const o1 = ops[i];
+      for (let j = 0; j < ops.length; j++) {
+        const o2 = ops[j];
+        for (let k = 0; k < ops.length; k++) {
+          const o3 = ops[k];
+          for (let f = 0; f < BRACKET_FORMS.length; f++) {
+            const v = BRACKET_FORMS[f][0](a,o1,b,o2,c,o3,d);
+            if (v !== null && v === v && Math.abs(v - 10) < 1e-9) {
+              found.add(BRACKET_FORMS[f][1](a,o1,b,o2,c,o3,d));
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const result = [...found];
+  if (_solveCache.size > 500) _solveCache.clear();
+  _solveCache.set(key, result);
+  return result;
+}
+
+function genProb(diff) {
+  const cfg = DCONF[diff];
+  const mid = (cfg.minSol + cfg.maxSol) / 2;
+  let best = null;          // 範囲内で見つからない時の "中央寄り" ベスト
+  let anySolved = null;     // 範囲外でも解が1つ以上ある問題
+  const tried = new Set();
+  for (let i = 0; i < 400; i++) {
+    const nums = [r9(),r9(),r9(),r9()];
+    const k = [...nums].sort((a,b)=>a-b).join(',');
+    if (tried.has(k)) continue;
+    tried.add(k);
+    const sols = solveAll(nums, diff);
+    if (sols.length >= cfg.minSol && sols.length <= cfg.maxSol) {
+      return { nums, solutions: sols };
+    }
+    if (sols.length >= 1 && (!anySolved || sols.length < anySolved.solutions.length)) {
+      // 「解が必ず1つはある」フォールバック用に、解の少ない問題を覚えておく
+      anySolved = { nums, solutions: sols };
+    }
+    if (!best || Math.abs(sols.length - mid) < Math.abs(best.solutions.length - mid)) {
+      best = { nums, solutions: sols };
+    }
+  }
+  // ─── ここが「ゲキムズで答えが無い」問題の修正 ─────────────────
+  // 範囲内が見つからなかった場合でも、必ず "解が1つ以上ある" 問題を返す。
+  if (anySolved) return anySolved;
+  if (best && best.solutions.length >= 1) return best;
+  // それでも見つからなければ、追加で200回ほど "とにかく解ける問題" を探索
+  for (let i = 0; i < 200; i++) {
+    const nums = [r9(),r9(),r9(),r9()];
+    const sols = solveAll(nums, diff);
+    if (sols.length >= 1) return { nums, solutions: sols };
+  }
+  // 最終フォールバック: 必ず解ける既知の問題セット
+  const SAFE = [
+    [1,2,3,4], [2,3,4,5], [1,1,5,5], [3,3,7,7],
+    [4,4,4,4], [2,5,5,5], [1,4,5,6], [1,2,5,8],
+  ];
+  for (const nums of SAFE) {
+    const sols = solveAll(nums, diff);
+    if (sols.length >= 1) return { nums: [...nums], solutions: sols };
+  }
+  // どんな難易度でも +,-,*,/ を許せば 1+2+3+4=10 は必ず成立
+  return { nums:[1,2,3,4], solutions:['1+2+3+4'] };
+}
+
+const r9 = () => 1 + Math.floor(Math.random() * 9);
+
+// ════════════════════════════════════════════
+// GAME FLOW
+// ════════════════════════════════════════════
+let selD = '2', pendMode = null;
+
+function openDiff(mode) {
+  pendMode = mode; selD = '2';
+  document.querySelectorAll('.diff-card').forEach(c => c.classList.remove('sel'));
+  document.getElementById('modeConf').style.display = 'none';
+
+  const titles = { play:'🎮 プレイ設定', practice:'📚 練習設定', survival:'💀 サバイバル', time:'⏱️ タイムアタック設定' };
+  const fields = {
+    play:     `<div class="inp-grp"><label>問題数</label><input type="number" id="cfQ" value="10" min="1" max="50"></div>
+               <div class="inp-grp"><label>ミス上限</label><input type="number" id="cfM" value="3" min="1" max="10"></div>`,
+    practice: `<div class="inp-grp"><label>問題数</label><input type="number" id="cfQ" value="10" min="1" max="50"></div>`,
+    survival: `<p class="txt-muted">1ミスでゲームオーバー！どこまで続けられるか？</p>`,
+    time:     `<div class="inp-grp"><label>制限時間（秒）</label><input type="number" id="cfT" value="30" min="10" max="300"></div>`,
+  };
+  document.getElementById('modeConfTitle').textContent = titles[mode] || mode;
+  document.getElementById('modeConfFields').innerHTML  = fields[mode] || '';
+  go('sDiff');
+}
+
+function selDiff(d) {
+  selD = d;
+  document.querySelectorAll('.diff-card').forEach((c, i) => c.classList.toggle('sel', String(i+1) === d));
+  document.getElementById('modeConf').style.display = 'block';
+}
+
+function launchGame() {
+  const m = pendMode, d = selD, cfg = { mode: m, diff: d };
+  if (m === 'play')     { cfg.totalQ = +document.getElementById('cfQ')?.value || 10; cfg.maxMiss = +document.getElementById('cfM')?.value || 3; }
+  if (m === 'practice') cfg.totalQ = +document.getElementById('cfQ')?.value || 10;
+  if (m === 'time')     cfg.timeLimit = +document.getElementById('cfT')?.value || 30;
+  startGame(cfg);
+}
+
+function startGame(cfg) {
+  if (GS?.timerIv) clearInterval(GS.timerIv);
+  AC.reset();
+  GS = {
+    ...cfg,
+    score:0, qNum:1, misses:0, correct:0, wrong:0, combo:0, maxCombo:0,
+    startTime: Date.now(),
+    problem: genProb(cfg.diff),
+    expr:[], usedNums:[],
+    timerIv: null,
+    pracProbs: [],
+  };
+  renderGame(); go('sGame');
+  if (cfg.mode === 'time') startTimer(cfg.timeLimit);
+}
+
+function renderGame() {
+  const g = GS;
+  document.getElementById('gScore').textContent = g.score;
+  document.getElementById('gQ').textContent     = g.totalQ ? `${g.qNum}/${g.totalQ}` : `${g.qNum}`;
+  document.getElementById('gMiss').textContent  = g.maxMiss ? `${g.misses}/${g.maxMiss}` : g.misses;
+  document.getElementById('progBar').style.width = g.totalQ ? `${((g.qNum-1)/g.totalQ)*100}%` : '0%';
+  document.getElementById('tBarWrap').style.display = g.mode === 'time' ? 'block' : 'none';
+  renderCombo();
+  renderProblem();
+  renderPads();
+  resetExpr();
+  document.getElementById('fbWrap').innerHTML = '';
+}
+
+function renderProblem() {
+  document.getElementById('probNums').innerHTML =
+    GS.problem.nums.map((n, i) =>
+      `<span class="pnum${GS.usedNums.includes(i)?' used':''}">${n}</span>`
+    ).join('');
+}
+
+function renderPads() {
+  const ops = DCONF[GS.diff].ops;
+  const sym = { '+':'+', '-':'−', '*':'×', '/':'÷' };
+  document.getElementById('numPad').innerHTML =
+    GS.problem.nums.map((n, i) =>
+      `<button class="nbtn${GS.usedNums.includes(i)?' used':''}" onclick="addNum(${n},${i})">${n}</button>`
+    ).join('');
+  document.getElementById('opPad').innerHTML =
+    ['+','-','*','/','(',')'].map(op => {
+      const dis = op !== '(' && op !== ')' && !ops.includes(op);
+      return `<button class="opbtn${dis?' dis':''}" onclick="addOp('${op}')">${sym[op]||op}</button>`;
+    }).join('');
+}
+
+function addNum(n, idx) {
+  if (GS.usedNums.includes(idx)) return;
+  GS.expr.push({ t:'n', v:n, idx });
+  GS.usedNums.push(idx);
+  updateExpr(); renderPads();
+}
+function addOp(op) { GS.expr.push({ t:'o', v:op }); updateExpr(); }
+
+function updateExpr() {
+  const sym = { '+':'+', '-':'−', '*':'×', '/':'÷' };
+  const s = GS.expr.map(x => x.t==='n' ? x.v : (sym[x.v]||x.v)).join(' ');
+  const box = document.getElementById('exprBox');
+  box.textContent = s || '—';
+  box.className = s ? 'expr-box has-content' : 'expr-box';
+}
+
+function clearExpr() { GS.expr = []; GS.usedNums = []; updateExpr(); renderPads(); }
+function resetExpr()  { GS.expr = []; GS.usedNums = []; document.getElementById('exprBox').textContent = '—'; document.getElementById('exprBox').className = 'expr-box'; }
+function getExpr()    { return GS.expr.map(x => x.v).join(''); }
+
+function submitExpr() {
+  if (!GS) return;
+  const expr = getExpr();
+  if (!expr) { showFb('⬅ 式を入力してください', 'inf'); return; }
+
+  // ─ ANTI-CHEAT ─
+  const cr = AC.check();
+  if (cr) {
+    const banned = AC.log(CU, GS.mode, GS.diff, cr, expr, GS.problem.nums);
+    if (banned) { toast('⚠ 自動BANされました', 'error'); doLogout(); return; }
+    showFb(cr === 'too_fast' ? '⚠ 入力が速すぎます' : '⚠ 連続送信が多すぎます', 'ng');
+    return;
+  }
+
+  // ─ NUMS CHECK ─
+  const used = GS.expr.filter(x => x.t==='n').map(x => +x.v);
+  if (JSON.stringify([...used].sort((a,b)=>a-b)) !== JSON.stringify([...GS.problem.nums].sort((a,b)=>a-b))) {
+    showFb('⚠ 4つの数字をすべて使ってください', 'ng'); return;
+  }
+
+  // ─ EVAL ─
+  let val;
+  try { val = seval(expr); }
+  catch (e) {
+    const r = /divis/i.test(String(e)) ? 'zero_div' : 'syntax';
+    AC.log(CU, GS.mode, GS.diff, r, expr, GS.problem.nums);
+    showFb('⚠ 計算エラー', 'ng'); return;
+  }
+
+  if (Math.abs(val - 10) < 1e-9) {
+    GS.combo++;
+    GS.maxCombo = Math.max(GS.maxCombo, GS.combo);
+    const gain = DCONF[GS.diff].score + GS.combo * 5;
+    GS.score += gain; GS.correct++;
+    if (GS.mode === 'practice') GS.pracProbs.push({...GS.problem});
+    showFb(`✅ 正解！ +${gain}`, 'ok');
+    renderCombo(true);
+    document.getElementById('gScore').textContent = GS.score;
+    nextQ();
+  } else {
+    GS.combo = 0; GS.misses++; GS.wrong++;
+    renderCombo();
+    const sol = GS.problem.solutions[0] || 'なし';
+    showFb(`❌ 不正解 (= ${isFinite(val)?val.toFixed(2):val}) → 例: ${sol}`, 'ng');
+    document.getElementById('gMiss').textContent = GS.maxMiss ? `${GS.misses}/${GS.maxMiss}` : GS.misses;
+    clearExpr();
+    if (GS.mode === 'survival') { setTimeout(endGame, 1800); return; }
+    if (GS.maxMiss && GS.misses >= GS.maxMiss) {
+      showFb(`💀 ゲームオーバー！ (${GS.misses}ミス)`, 'ng');
+      setTimeout(endGame, 2000);
+    }
+  }
+}
+
+function skipProb() {
+  const sol = GS.problem.solutions[0] || 'なし';
+  showFb(`⏭ スキップ → 例: ${sol}`, 'inf');
+  GS.combo = 0;
+  if (GS.mode === 'survival') { GS.misses++; setTimeout(endGame, 1500); return; }
+  setTimeout(nextQ, 1200);
+}
+
+function nextQ() {
+  if (GS.totalQ && GS.qNum >= GS.totalQ) { setTimeout(endGame, 1000); return; }
+  setTimeout(() => { GS.qNum++; GS.problem = genProb(GS.diff); renderGame(); }, 750);
+}
+
+function startTimer(sec) {
+  const bar = document.getElementById('tBar'), start = Date.now();
+  clearInterval(GS.timerIv);
+  GS.timerIv = setInterval(() => {
+    const rem = sec - (Date.now()-start)/1000, pct = Math.max(0, (rem/sec)*100);
+    bar.style.width = pct + '%';
+    bar.className = pct < 30 ? 't-bar warn' : 't-bar';
+    document.getElementById('gQ').textContent = `${GS.qNum} | ⏱${Math.ceil(rem)}s`;
+    if (rem <= 0) { clearInterval(GS.timerIv); showFb('⏰ タイムアップ！', 'inf'); setTimeout(endGame, 1500); }
+  }, 200);
+}
+
+function abortGame() {
+  if (GS?.timerIv) clearInterval(GS.timerIv);
+  GS = null; go('sMenu');
+}
+
+function endGame() {
+  if (!GS) return;
+  if (GS.timerIv) clearInterval(GS.timerIv);
+  const elapsed = (Date.now() - GS.startTime) / 1000;
+
+  const entry = {
+    mode: GS.mode, score: GS.score, difficulty: GS.diff,
+    questions: GS.mode === 'time' ? GS.correct : GS.qNum,
+    misses: GS.misses, correct: GS.correct, wrong: GS.wrong,
+    maxCombo: GS.maxCombo, duration: Math.round(elapsed),
+    timeLimit: GS.timeLimit || null, timestamp: new Date().toISOString(),
+    _pracNums: GS.mode === 'practice' ? GS.pracProbs.map(p=>p.nums) : null,
+    _pracSols: GS.mode === 'practice' ? GS.pracProbs.map(p=>p.solutions[0]||'なし') : null,
+  };
+
+  if (CU) {
+    CU.history = [...(CU.history||[]), entry];
+    if (GS.mode === 'survival') CU.survival = [...(CU.survival||[]),entry].sort((a,b)=>b.score-a.score).slice(0,10);
+    if (GS.mode === 'time')     CU.time     = [...(CU.time||[]),entry].sort((a,b)=>b.score-a.score).slice(0,10);
+    DB.saveUser(CU);
+  }
+
+  GS = null;
+  showResult(entry);
+}
+
+function showResult(e) {
+  const icon = { play:'🎮', practice:'📚', survival:'💀', time:'⏱️' };
+  document.getElementById('rMode').textContent  = (icon[e.mode]||'▶') + ' ' + e.mode.toUpperCase();
+  document.getElementById('rScore').textContent = e.score;
+  document.getElementById('rGrid').innerHTML =
+    [['正解',e.correct],['ミス',e.misses],['コンボ',e.maxCombo],['時間',e.duration+'s']]
+    .map(([l,v]) => `<div class="result-cell"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  document.getElementById('rPractice').innerHTML = e._pracNums
+    ? `<div class="card mt-16" style="text-align:left;"><div class="card-title">📖 解答例</div>${
+        e._pracNums.map((n,i)=>`<div class="log-item">${n.join(' ')} → ${e._pracSols[i]}</div>`).join('')}</div>`
+    : '';
+
+  document.getElementById('rAgain').onclick = () => {
+    const cfg = { mode:e.mode, diff:e.difficulty };
+    if (e.mode==='play')     { cfg.totalQ=e.questions; cfg.maxMiss=3; }
+    if (e.mode==='practice') cfg.totalQ = e.questions;
+    if (e.mode==='time')     cfg.timeLimit = e.timeLimit || 30;
+    startGame(cfg);
+  };
+  go('sResult');
+}
+
+function renderCombo(flash = false) {
+  const el = document.getElementById('combo');
+  el.textContent = `× ${GS?.combo || 0}`;
+  if (flash) { el.classList.add('hot'); setTimeout(() => el.classList.remove('hot'), 450); }
+}
+
+function showFb(msg, type) {
+  document.getElementById('fbWrap').innerHTML = `<div class="fb ${type}">${msg}</div>`;
+}
+
+// ════════════════════════════════════════════
+// HISTORY
+// ════════════════════════════════════════════
+function showHistory() {
+  const hist = [...(CU?.history||[])].reverse().slice(0,60);
+  document.getElementById('histList').innerHTML = hist.length
+    ? hist.map(e => `
+        <div class="rank-item">
+          <div class="rank-info">
+            <div class="rank-name">${mIcon(e.mode)} ${e.mode} · D${e.difficulty||'-'}</div>
+            <div class="rank-sub">${e.timestamp?.slice(0,10)||'-'} &nbsp;|&nbsp; 正解:${e.correct||0} ミス:${e.misses||0} コンボ:${e.maxCombo||0}</div>
+          </div>
+          <div class="rank-score">${e.score||0}</div>
+        </div>`).join('')
+    : '<div class="txt-muted txt-c" style="padding:24px;">データなし</div>';
+  go('sHistory');
+}
+
+// ════════════════════════════════════════════
+// MY RANKINGS
+// ════════════════════════════════════════════
+let curMyTab = 'play';
+function showMyRank() { curMyTab='play'; renderMyRank(); go('sMyRank'); }
+
+function myTab(btn, tab) {
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  curMyTab = tab; renderMyRank();
+}
+
+function renderMyRank() {
+  let e = [];
+  if (curMyTab==='play')     e = (CU?.history||[]).filter(x => x.mode==='play');
+  if (curMyTab==='survival') e = CU?.survival || [];
+  if (curMyTab==='time')     e = CU?.time || [];
+  document.getElementById('myRankList').innerHTML = rankItems([...e].sort((a,b)=>b.score-a.score).slice(0,10), false);
+}
+
+// ════════════════════════════════════════════
+// GLOBAL RANKINGS
+// ════════════════════════════════════════════
+let curGlTab = 'play';
+function showGlobal() { curGlTab='play'; renderGlobal(); go('sGlobal'); }
+
+function glTab(btn, tab) {
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  curGlTab = tab; renderGlobal();
+}
+
+function renderGlobal() {
+  const users = Object.values(DB.getUsers());
+  const el    = document.getElementById('glRankList');
+
+  if (curGlTab === 'overview') {
+    let total=0, scores=[];
+    users.forEach(u => ['history','survival','time'].forEach(f => (u[f]||[]).forEach(e => { total++; scores.push(e.score||0); })));
+    const avg  = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : 0;
+    const best = scores.length ? Math.max(...scores) : 0;
+    el.innerHTML = `<div class="card">
+      <div class="stat-mini-grid">
+        ${[['ユーザー数',users.length],['総セッション',total],['平均スコア',avg],['最高スコア',best]]
+          .map(([l,v]) => `<div class="stat-mini"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('')}
+      </div></div>`;
+    return;
+  }
+
+  let entries = [];
+  users.forEach(u => {
+    if (curGlTab==='play')     (u.history||[]).filter(e=>e.mode==='play').forEach(e=>entries.push({...e,userName:u.name}));
+    if (curGlTab==='survival') (u.survival||[]).forEach(e=>entries.push({...e,userName:u.name}));
+    if (curGlTab==='time')     (u.time||[]).forEach(e=>entries.push({...e,userName:u.name}));
+  });
+  el.innerHTML = rankItems([...entries].sort((a,b)=>b.score-a.score).slice(0,10), true);
+}
+
+function rankItems(entries, showUser) {
+  if (!entries.length) return '<div class="txt-muted txt-c" style="padding:24px;">データなし</div>';
+  const med = ['gold','silver','bronze'];
+  return entries.map((e,i) => `
+    <div class="rank-item">
+      <div class="rank-n ${med[i]||''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</div>
+      <div class="rank-info">
+        <div class="rank-name">${showUser ? e.userName : (e.timestamp?.slice(0,10)||'-')}</div>
+        <div class="rank-sub">${mIcon(e.mode)} D${e.difficulty||'-'} &nbsp;|&nbsp; 正解:${e.correct||0} コンボ:${e.maxCombo||0}</div>
+      </div>
+      <div class="rank-score">${e.score||0}</div>
+    </div>`).join('');
+}
+
+const mIcon = m => ({play:'🎮',practice:'📚',survival:'💀',time:'⏱️'}[m]||'▶');
+
+// ════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════
+function showSettings() {
+  const logs = [...(CU?.loginLogs||[])].reverse().slice(0,12);
+  document.getElementById('sLoginLogs').innerHTML = logs.length
+    ? logs.map(l => `<div class="log-item ${l.result==='success'?'ok':'err'}">${l.time?.slice(0,19)||''} &nbsp;|&nbsp; ${l.result==='success'?'✅ 成功':'❌ 失敗'}</div>`).join('')
+    : '<div class="txt-muted">ログなし</div>';
+  go('sSettings');
+}
+
+async function changePin() {
+  const cur  = document.getElementById('sCurPin').value;
+  const np   = document.getElementById('sNewPin').value;
+  const conf = document.getElementById('sCnfPin').value;
+  if (!cur||!np||!conf) { toast('全フィールドを入力してください','error'); return; }
+  if (!(await verifyPin(CU, cur))) { toast('現在のPINが違います','error'); return; }
+  if (np !== conf) { toast('PIN不一致','error'); return; }
+  await setPinOnUser(CU, np);
+  DB.saveUser(CU);
+  ['sCurPin','sNewPin','sCnfPin'].forEach(id => document.getElementById(id).value = '');
+  toast('✅ PIN変更完了','success');
+}
+
+function setLang(lang) { CU.lang=lang; DB.saveUser(CU); toast(`言語変更: ${lang}`,'info'); }
+
+function showReset() {
+  openMod('アカウント初期化', `
+    <p style="color:var(--red);margin-bottom:14px;font-size:.87rem;">⚠️ すべてのゲームデータが削除されます。</p>
+    <div class="inp-grp"><label>"RESET"と入力して確認</label><input type="text" id="resetIn" placeholder="RESET"></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="doReset()">🗑️ 削除する</button>
+      <button class="btn btn-ghost"  onclick="closeMod()">キャンセル</button>
+    </div>`);
+}
+
+function doReset() {
+  if (document.getElementById('resetIn')?.value !== 'RESET') { toast('"RESET"と入力してください','error'); return; }
+  CU.history=[]; CU.survival=[]; CU.time=[]; CU.loginLogs=[];
+  DB.saveUser(CU); closeMod();
+  toast('✅ データを削除しました','info'); go('sMenu');
+}
+
+// ════════════════════════════════════════════
+// ADMIN PANEL
+// ════════════════════════════════════════════
+function showAdmin() {
+  if (!isAdminLike(CU)) { toast('管理者のみ','error'); return; }
+  admCurTab='users'; renderAdm(); go('sAdmin');
+}
+
+function admTab(btn, tab) {
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  admCurTab = tab; renderAdm();
+}
+
+function renderAdm() {
+  const el = document.getElementById('admContent');
+  if (admCurTab==='users')    admUsers(el);
+  else if (admCurTab==='rankings') admRankings(el);
+  else if (admCurTab==='logs')     admLogs(el);
+  else if (admCurTab==='feedback') admFeedback(el);
+  else admSystem(el);
+  refreshAdmFbBadge();
+}
+
+const bestSc = u => { let b=0; ['history','survival','time'].forEach(f=>(u[f]||[]).forEach(e=>{ if((e.score||0)>b)b=e.score; })); return b; };
+
+function admUsers(el) {
+  const U=DB.getUsers(), T=DB.getTrash();
+  const canPromote = !!CU?.isAdmin;   // 副管理者の昇格／解除はメイン管理者だけ
+  el.innerHTML = `
+    <div class="card mb-16">
+      <div class="card-title">👥 ユーザー一覧 (${Object.keys(U).length})</div>
+      ${Object.keys(U).map(n=>{
+        const u=U[n], bn=u.banned&&(u.banUntil===0||Date.now()<u.banUntil);
+        const isMain = (n === ADMIN_NAME);
+        // 副管理者は他の管理者・副管理者を操作できない
+        const canActOnUser = !isMain && (CU?.isAdmin || (!u.isAdmin && !u.isCoAdmin));
+        return `<div class="uitem">
+          <div class="uitem-info">
+            <div class="uitem-name">${n}
+              ${u.isAdmin?'<span class="badge badge-admin">ADMIN</span>':''}
+              ${u.isCoAdmin?'<span class="badge badge-admin">CO-ADMIN</span>':''}
+              ${bn?'<span class="badge badge-ban">BAN</span>':''}
+            </div>
+            <div class="uitem-sub">最高スコア: ${bestSc(u)} &nbsp;|&nbsp; チート検知: ${u.cheatHits||0}</div>
+          </div>
+          <div class="uitem-acts">
+            <button class="btn btn-ghost btn-sm"  onclick="admInspect('${n}')">👁</button>
+            ${(canPromote && !isMain && !u.isAdmin)
+              ? (u.isCoAdmin
+                  ? `<button class="btn btn-warn btn-sm"  onclick="admDemote('${n}')" title="副管理者を解除">⬇ 副管理</button>`
+                  : `<button class="btn btn-green btn-sm" onclick="admPromote('${n}')" title="副管理者に昇格">⬆ 副管理</button>`)
+              : ''}
+            ${canActOnUser?`<button class="btn btn-danger btn-sm" onclick="admDelModal('${n}')">🗑</button>`:''}
+            ${canActOnUser
+              ? (bn
+                  ?`<button class="btn btn-green btn-sm"  onclick="admUnban('${n}')">✅</button>`
+                  :`<button class="btn btn-warn btn-sm"   onclick="admBanModal('${n}')">🚫</button>`)
+              : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${Object.keys(T).length ? `
+    <div class="card">
+      <div class="card-title">🗑️ ゴミ箱 (${Object.keys(T).length})</div>
+      ${Object.keys(T).map(n=>`
+        <div class="uitem">
+          <div class="uitem-info"><div class="uitem-name">${n}</div></div>
+          <div class="uitem-acts">
+            <button class="btn btn-ghost btn-sm" onclick="admRestore('${n}')">♻️ 復元</button>
+          </div>
+        </div>`).join('')}
+    </div>` : ''}`;
+}
+
+function admInspect(n) {
+  const u = DB.getUser(n); if (!u) return;
+  const bn = u.banned&&(u.banUntil===0||Date.now()<u.banUntil);
+  openMod(`👁 ${n}`, `
+    <div class="stat-mini-grid mb-16">
+      ${[['プレイ数',(u.history||[]).filter(e=>e.mode==='play').length],['最高スコア',bestSc(u)],['ログイン',(u.loginLogs||[]).length],['チート',u.cheatHits||0]]
+        .map(([l,v])=>`<div class="stat-mini"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('')}
+    </div>
+    <div style="font-size:.8rem;color:var(--muted);line-height:2;">
+      <div>BAN: ${bn?`🚫 ${u.banReason||''}`:' ✅ なし'}</div>
+      ${u.banUntil>0?`<div>BAN期限: ${new Date(u.banUntil).toLocaleString()}</div>`:''}
+      <div>管理者: ${u.isAdmin?'✅ はい':'いいえ'}</div>
+      <div>ロック: ${Date.now()<(u.lockUntil||0)?`残り${Math.ceil(((u.lockUntil||0)-Date.now())/1000)}秒`:'なし'}</div>
+    </div>`);
+}
+
+function admDelModal(n) {
+  openMod(`🗑️ 削除: ${n}`, `
+    <p style="margin-bottom:14px;">本当に削除しますか？（ゴミ箱へ移動）</p>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="admDoDel('${n}')">削除</button>
+      <button class="btn btn-ghost"  onclick="closeMod()">キャンセル</button>
+    </div>`);
+}
+function admDoDel(n) {
+  DB.deleteUser(n);
+  DB.addLog({ time: new Date().toISOString(), action:'delete_user', target:n, by:CU.name });
+  closeMod(); renderAdm(); toast(`${n} を削除しました`,'info');
+}
+function admRestore(n) {
+  DB.restoreUser(n);
+  DB.addLog({ time: new Date().toISOString(), action:'restore_user', target:n, by:CU.name });
+  renderAdm(); toast(`${n} を復元しました`,'success');
+}
+
+function admBanModal(n) {
+  openMod(`🚫 BAN: ${n}`, `
+    <div class="inp-grp"><label>BAN時間（秒、0=永久）</label><input type="number" id="bSec" value="3600" min="0"></div>
+    <div class="inp-grp"><label>理由</label><input type="text" id="bRsn" placeholder="manual"></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="admDoBan('${n}')">BAN実行</button>
+      <button class="btn btn-ghost"  onclick="closeMod()">キャンセル</button>
+    </div>`);
+}
+function admDoBan(n) {
+  const sec    = +document.getElementById('bSec')?.value || 3600;
+  const reason = document.getElementById('bRsn')?.value || 'manual';
+  const u = DB.getUser(n);
+  if (!u || u.isAdmin) { toast('操作できません','error'); return; }
+  if (u.isCoAdmin && !CU?.isAdmin) { toast('副管理者は他の副管理者を操作できません','error'); return; }
+  u.banned=true; u.banUntil=sec>0?Date.now()+sec*1000:0; u.banReason=reason;
+  DB.saveUser(u);
+  DB.addLog({ time:new Date().toISOString(), action:'ban_user', target:n, by:CU.name, sec, reason });
+  closeMod(); renderAdm(); toast(`${n} をBANしました`,'warning');
+}
+function admUnban(n) {
+  const u = DB.getUser(n); if (!u) return;
+  u.banned=false; u.banUntil=0; u.banReason='';
+  DB.saveUser(u);
+  DB.addLog({ time:new Date().toISOString(), action:'unban_user', target:n, by:CU.name });
+  renderAdm(); toast(`${n} のBANを解除しました`,'success');
+}
+
+function admRankings(el) {
+  const users = Object.values(DB.getUsers());
+  const ps=[],ss=[],ts=[];
+  users.forEach(u=>{
+    (u.history||[]).filter(e=>e.mode==='play').forEach(e=>ps.push({...e,userName:u.name}));
+    (u.survival||[]).forEach(e=>ss.push({...e,userName:u.name}));
+    (u.time||[]).forEach(e=>ts.push({...e,userName:u.name}));
+  });
+  const sec = (t, entries) => `<div class="card mb-16"><div class="card-title">${t}</div>
+    ${entries.length
+      ? [...entries].sort((a,b)=>b.score-a.score).slice(0,10).map((e,i)=>`
+          <div class="rank-item">
+            <div class="rank-n">${i+1}</div>
+            <div class="rank-info">
+              <div class="rank-name">${e.userName}</div>
+              <div class="rank-sub">D${e.difficulty||'-'} 正解:${e.correct||0} コンボ:${e.maxCombo||0}</div>
+            </div>
+            <div class="rank-score">${e.score||0}</div>
+          </div>`).join('')
+      : '<div class="txt-muted">データなし</div>'}
+  </div>`;
+  el.innerHTML = sec('🎮 プレイ',ps)+sec('💀 サバイバル',ss)+sec('⏱ タイム',ts);
+}
+
+function admLogs(el) {
+  const logs  = DB.getLogs().slice(-60).reverse();
+  const cheat = DB.getCheats().slice(-40).reverse();
+  el.innerHTML = `
+    <div class="card mb-16">
+      <div class="card-title">📋 管理ログ (${logs.length}件)</div>
+      ${logs.length ? logs.map(l=>`
+        <div class="log-item ${l.action?.includes('fail')||l.action?.includes('expire')?'err':'ok'}">
+          ${l.time?.slice(0,19)||''} | ${l.action||'-'} | ${l.target||l.user||l.by||''}
+        </div>`).join('') : '<div class="txt-muted">なし</div>'}
+    </div>
+    <div class="card">
+      <div class="card-title">🚨 チート検知ログ (${cheat.length}件)</div>
+      ${cheat.length ? cheat.map(l=>`
+        <div class="log-item wrn">
+          ${l.time?.slice(0,19)||''} | ${l.user||'-'} | ${l.reason||'-'} | ${l.expr||''}
+        </div>`).join('') : '<div class="txt-muted">なし</div>'}
+    </div>`;
+}
+
+function admSystem(el) {
+  const s = DB.getSettings();
+  el.innerHTML = `
+    <div class="card mb-16">
+      <div class="card-title">📢 放送メッセージ</div>
+      <div class="inp-grp">
+        <label>メッセージ（空で削除）</label>
+        <textarea id="bcIn" rows="2" style="resize:vertical;">${s.broadcast?.msg||''}</textarea>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="admSetBC()">📢 送信</button>
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">🚧 システム状態</div>
+      <div class="flex-between mb-8">
+        <span>メンテナンスモード</span>
+        <span class="badge ${s.maintenance?'badge-on':'badge-off'}">${s.maintenance?'ON':'OFF'}</span>
+      </div>
+      <button class="btn ${s.maintenance?'btn-ghost':'btn-warn'} btn-sm mb-16" onclick="admToggle('maintenance')">
+        ${s.maintenance?'🚧 解除':'🚧 有効化'}
+      </button>
+      <div class="flex-between mb-8">
+        <span>緊急停止</span>
+        <span class="badge ${s.shutdown?'badge-on':'badge-off'}">${s.shutdown?'ON':'OFF'}</span>
+      </div>
+      <button class="btn ${s.shutdown?'btn-ghost':'btn-danger'} btn-sm" onclick="admToggle('shutdown')">
+        ${s.shutdown?'🚨 解除':'🚨 緊急停止'}
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">⚡ 強制ログアウト（全ユーザー）</div>
+      <div class="inp-grp"><label>理由</label><input type="text" id="flRsn" placeholder="メンテナンス等"></div>
+      <button class="btn btn-danger btn-sm" onclick="admForceLogout()">⚡ 全員ログアウト</button>
+    </div>`;
+}
+
+function admSetBC() {
+  const msg = document.getElementById('bcIn')?.value.trim() || '';
+  const s = DB.getSettings();
+  s.broadcast = { msg, createdAt: Date.now() };
+  DB.saveSettings(s);
+  DB.addLog({ time:new Date().toISOString(), action:'broadcast', by:CU.name, msg });
+  if (msg) { document.getElementById('bcMsg').textContent=msg; document.getElementById('bcBar').classList.add('on'); }
+  else       document.getElementById('bcBar').classList.remove('on');
+  toast('📢 放送を設定しました','success');
+}
+
+function admToggle(key) {
+  const s = DB.getSettings(); s[key] = !s[key]; DB.saveSettings(s);
+  DB.addLog({ time:new Date().toISOString(), action:`toggle_${key}`, by:CU.name, value:s[key] });
+  toast(`${key}: ${s[key]?'ON':'OFF'}`, s[key]?'warning':'success');
+  renderAdm(); checkSysState();
+}
+
+function admForceLogout() {
+  const reason = document.getElementById('flRsn')?.value || '';
+  const s = DB.getSettings();
+  s.forceLogoutId = (s.forceLogoutId||0) + 1;
+  DB.saveSettings(s);
+  DB.addLog({ time:new Date().toISOString(), action:'force_logout', by:CU.name, id:s.forceLogoutId, reason });
+  toast('⚡ 強制ログアウトを設定しました','warning');
+}
+
+// ════════════════════════════════════════════
+// MODAL / TOAST / HELPERS
+// ════════════════════════════════════════════
+function openMod(title, html) {
+  document.getElementById('mTitle').textContent = title;
+  document.getElementById('mBody').innerHTML    = html;
+  document.getElementById('mOv').style.display  = 'flex';
+}
+function closeMod() { document.getElementById('mOv').style.display = 'none'; }
+
+function toast(msg, type='info', dur=3200) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`; el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0'; el.style.transition = 'opacity .3s';
+    setTimeout(() => el.remove(), 300);
+  }, dur);
+}
+
+function showFbEl(el, msg) { el.textContent = msg; el.style.display = 'flex'; }
+
+// ════════════════════════════════════════════
+// SOUND EFFECTS (Web Audio, no external assets)
+// ════════════════════════════════════════════
+const SFX = (() => {
+  let ctx = null;
+  function ensure() {
+    if (ctx) return ctx;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+    } catch { ctx = null; }
+    return ctx;
+  }
+  function enabled() { return CU ? (CU.sound !== false) : true; }
+  function tone(freq, dur, type='sine', gain=0.18, glide=null) {
+    if (!enabled()) return;
+    const c = ensure(); if (!c) return;
+    if (c.state === 'suspended') c.resume().catch(()=>{});
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, c.currentTime);
+    if (glide) o.frequency.exponentialRampToValueAtTime(Math.max(20, glide), c.currentTime + dur);
+    g.gain.setValueAtTime(0.0001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(gain, c.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime + dur + 0.02);
+  }
+  function seq(notes) {
+    if (!enabled()) return;
+    let t = 0;
+    notes.forEach(n => {
+      setTimeout(() => tone(n.f, n.d || 0.12, n.t || 'sine', n.g || 0.18, n.glide || null),
+                 t * 1000);
+      t += (n.gap != null ? n.gap : (n.d || 0.12));
+    });
+  }
+  return {
+    click()    { tone(420, 0.04, 'square', 0.07); },
+    correct()  { seq([{f:660,d:0.09},{f:880,d:0.11},{f:1175,d:0.16}]); },
+    wrong()    { tone(180, 0.30, 'sawtooth', 0.16, 80); },
+    combo(n)   {
+      const base = 600 + Math.min(20, n) * 60;
+      seq([{f:base,d:0.08},{f:base*1.25,d:0.10},{f:base*1.5,d:0.14}]);
+    },
+    skip()     { tone(420, 0.10, 'triangle', 0.10, 220); },
+    gameover() { seq([{f:520,d:0.18},{f:392,d:0.22},{f:294,d:0.30,glide:160}]); },
+    levelup()  { seq([{f:523,d:0.10},{f:659,d:0.10},{f:784,d:0.12},{f:1047,d:0.18}]); },
+    notify()   { seq([{f:880,d:0.08},{f:1175,d:0.12}]); },
+    resume()   { const c = ensure(); if (c && c.state === 'suspended') c.resume().catch(()=>{}); },
+  };
+})();
+// ユーザー操作で AudioContext をアンロック
+document.addEventListener('pointerdown', () => SFX.resume(), { once: true, capture: true });
+
+function setSound(on) {
+  if (!CU) return;
+  CU.sound = !!on;
+  DB.saveUser(CU);
+  toast(on ? '🔊 効果音 ON' : '🔈 効果音 OFF', on ? 'success' : 'info');
+  applySoundButtons();
+  if (on) SFX.click();
+}
+function applySoundButtons() {
+  const on  = document.getElementById('sSoundOn');
+  const off = document.getElementById('sSoundOff');
+  if (!on || !off) return;
+  const isOn = CU ? (CU.sound !== false) : true;
+  on.classList.toggle('btn-primary', isOn);
+  on.classList.toggle('btn-ghost',  !isOn);
+  off.classList.toggle('btn-primary', !isOn);
+  off.classList.toggle('btn-ghost',   isOn);
+}
+
+// ════════════════════════════════════════════
+// ACCOUNT SELF-DELETION
+// ════════════════════════════════════════════
+function showDelAcct() {
+  if (!CU) return;
+  if (isMainAdmin(CU)) { toast('メイン管理者は削除できません','error'); return; }
+  openMod('🗑️ アカウントを完全削除', `
+    <p style="color:var(--red);margin-bottom:14px;font-size:.9rem;line-height:1.5;">
+      ⚠️ アカウント「<b>${CU.name}</b>」とすべての記録を完全に削除します。<br>
+      この操作は元に戻せません。
+    </p>
+    <div class="inp-grp"><label>確認のためユーザー名を入力</label>
+      <input type="text" id="delAcctName" placeholder="${CU.name}" autocomplete="off"></div>
+    <div class="inp-grp"><label>PIN</label>
+      <input type="password" id="delAcctPin" placeholder="••••••" autocomplete="off"></div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="doDelAcct()">🗑️ 完全に削除する</button>
+      <button class="btn btn-ghost"  onclick="closeMod()">キャンセル</button>
+    </div>`);
+}
+async function doDelAcct() {
+  if (!CU) return;
+  const name = document.getElementById('delAcctName')?.value.trim() || '';
+  const pin  = document.getElementById('delAcctPin')?.value || '';
+  if (name !== CU.name) { toast('ユーザー名が一致しません','error'); return; }
+  if (!(await verifyPin(CU, pin))) { toast('PINが違います','error'); return; }
+  const target = CU.name;
+  // ユーザー本体・ゴミ箱・自分が出したフィードバックを削除
+  const users = DB.getUsers();   if (users[target])  delete users[target];  DB.saveUsers(users);
+  const trash = DB.getTrash();   if (trash[target])  delete trash[target];  DB.saveTrash(trash);
+  const fb = DB.getFeedback().filter(x => x.user !== target);
+  DB.saveFeedback(fb);
+  DB.addLog({ time:new Date().toISOString(), action:'self_delete', target, by:target });
+  closeMod();
+  CU = null;
+  toast('アカウントを削除しました','info');
+  go('sLogin');
+}
+
+// ════════════════════════════════════════════
+// CO-ADMIN PROMOTE / DEMOTE  (main admin only)
+// ════════════════════════════════════════════
+function admPromote(n) {
+  if (!CU?.isAdmin)  { toast('メイン管理者のみ','error'); return; }
+  if (n === ADMIN_NAME) return;
+  const u = DB.getUser(n); if (!u) return;
+  if (u.isAdmin)        { toast('既に管理者です','info'); return; }
+  u.isCoAdmin = true; DB.saveUser(u);
+  DB.addLog({ time:new Date().toISOString(), action:'promote_coadmin', target:n, by:CU.name });
+  renderAdm(); toast(`${n} を副管理者にしました`,'success');
+}
+function admDemote(n) {
+  if (!CU?.isAdmin)  { toast('メイン管理者のみ','error'); return; }
+  if (n === ADMIN_NAME) return;
+  const u = DB.getUser(n); if (!u) return;
+  u.isCoAdmin = false; DB.saveUser(u);
+  DB.addLog({ time:new Date().toISOString(), action:'demote_coadmin', target:n, by:CU.name });
+  renderAdm(); toast(`${n} の副管理者を解除しました`,'info');
+}
+
+// ════════════════════════════════════════════
+// FEEDBACK (USER side)
+// ════════════════════════════════════════════
+let fbType = 'bug';
+function setFbType(t) {
+  fbType = t;
+  const a = document.getElementById('fbTypeBug'), b = document.getElementById('fbTypeIdea');
+  if (a && b) {
+    a.classList.toggle('btn-primary', t==='bug');  a.classList.toggle('btn-ghost', t!=='bug');
+    b.classList.toggle('btn-primary', t==='idea'); b.classList.toggle('btn-ghost', t!=='idea');
+  }
+}
+function showFeedback() {
+  if (!CU) return;
+  setFbType('bug');
+  const ti = document.getElementById('fbTitle'); if (ti) ti.value = '';
+  const bo = document.getElementById('fbBody');  if (bo) bo.value = '';
+  renderMyFeedback();
+  go('sFeedback');
+}
+function renderMyFeedback() {
+  const wrap = document.getElementById('fbMine'); if (!wrap || !CU) return;
+  const mine = DB.getFeedback().filter(x => x.user === CU.name);
+  if (!mine.length) { wrap.innerHTML = '<div class="txt-muted">まだ送信していません。</div>'; return; }
+  wrap.innerHTML = mine.map(x => `
+    <div class="log-item ${x.type==='bug'?'wrn':'ok'}">
+      ${new Date(x.createdAt).toLocaleString()} | ${x.type==='bug'?'🐞':'💡'} ${escapeHtml(x.title||'(無題)')}
+      ${x.read ? ' <span class="badge badge-off">既読</span>' : ' <span class="badge badge-on">未読</span>'}
+    </div>`).join('');
+}
+function submitFeedback() {
+  if (!CU) return;
+  const title = (document.getElementById('fbTitle')?.value || '').trim();
+  const body  = (document.getElementById('fbBody')?.value || '').trim();
+  if (!title || !body) { toast('タイトルと詳細を入力してください','error'); return; }
+  if (title.length > 80 || body.length > 2000) { toast('文字数が長すぎます','error'); return; }
+  DB.addFeedback({
+    type: fbType === 'idea' ? 'idea' : 'bug',
+    title, body,
+    user: CU.name,
+  });
+  document.getElementById('fbTitle').value = '';
+  document.getElementById('fbBody').value  = '';
+  toast('📤 送信しました。ありがとうございます！','success');
+  SFX.notify();
+  renderMyFeedback();
+  refreshAdmFbBadge();
+}
+
+// ════════════════════════════════════════════
+// FEEDBACK (ADMIN side)
+// ════════════════════════════════════════════
+function admFeedback(el) {
+  const list = DB.getFeedback();
+  const unread = list.filter(x => !x.read).length;
+  el.innerHTML = `
+    <div class="card mb-16">
+      <div class="flex-between mb-8">
+        <div class="card-title" style="margin-bottom:0;">📮 受信箱 (${list.length}件 / 未読 ${unread})</div>
+        <button class="btn btn-ghost btn-sm" onclick="admMarkAllFb()">✅ 全て既読</button>
+      </div>
+      ${list.length ? list.map(x => `
+        <div class="uitem" style="align-items:flex-start;">
+          <div class="uitem-info" style="flex:1;min-width:0;">
+            <div class="uitem-name">
+              ${x.type==='bug'?'🐞 バグ':'💡 アイデア'} —
+              ${escapeHtml(x.title||'(無題)')}
+              ${x.read ? '' : '<span class="badge badge-on">NEW</span>'}
+            </div>
+            <div class="uitem-sub">
+              ${escapeHtml(x.user||'?')} | ${new Date(x.createdAt).toLocaleString()}
+            </div>
+            <div style="margin-top:6px;font-size:.85rem;white-space:pre-wrap;line-height:1.5;color:var(--fg,#ddd);">${escapeHtml(x.body||'')}</div>
+          </div>
+          <div class="uitem-acts" style="flex-direction:column;gap:6px;">
+            ${x.read ? '' : `<button class="btn btn-green btn-sm" onclick="admMarkFb('${x.id}')">✓ 既読</button>`}
+            <button class="btn btn-danger btn-sm" onclick="admDelFb('${x.id}')">🗑</button>
+          </div>
+        </div>`).join('') : '<div class="txt-muted">受信なし</div>'}
+    </div>`;
+}
+function admMarkFb(id)  { DB.markFeedbackRead(id); renderAdm(); }
+function admDelFb(id)   { DB.deleteFeedback(id);  renderAdm(); refreshAdmFbBadge(); }
+function admMarkAllFb() { DB.markAllFeedbackRead(); renderAdm(); refreshAdmFbBadge(); }
+
+function refreshAdmFbBadge() {
+  if (!isAdminLike(CU)) return;
+  const n = DB.unreadFeedbackCount();
+  const m = document.getElementById('mAdmFbBadge');
+  if (m) { m.textContent = n; m.style.display = n > 0 ? 'inline-block' : 'none'; }
+  const t = document.getElementById('admTabFbBadge');
+  if (t) { t.textContent = n; t.style.display = n > 0 ? 'inline-block' : 'none'; }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => (
+    { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+// ════════════════════════════════════════════
+// SFX HOOKS — wrap a few existing functions
+// ════════════════════════════════════════════
+(function wireSfx() {
+  const _submit = window.submitExpr;
+  window.submitExpr = function() {
+    if (!GS) return _submit.apply(this, arguments);
+    const beforeCorrect = GS.correct, beforeWrong = GS.wrong;
+    const r = _submit.apply(this, arguments);
+    if (GS) {
+      if (GS.correct > beforeCorrect) {
+        if (GS.combo >= 3) SFX.combo(GS.combo); else SFX.correct();
+      } else if (GS.wrong > beforeWrong) {
+        SFX.wrong();
+      }
+    }
+    return r;
+  };
+  const _skip = window.skipProb;
+  if (typeof _skip === 'function') {
+    window.skipProb = function() { SFX.skip(); return _skip.apply(this, arguments); };
+  }
+  const _end = window.endGame;
+  if (typeof _end === 'function') {
+    window.endGame = function() { SFX.gameover(); return _end.apply(this, arguments); };
+  }
+  // 軽いクリック音（ボタン全般）
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button.btn,button.tab,.menu-card,.diff-card,.nbtn,.opbtn');
+    if (b) SFX.click();
+  });
+})();
+
+// ════════════════════════════════════════════
+// KEYBOARD
+// ════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (!document.querySelector('#sGame.active')) return;
+  if (e.key === 'Enter')     { e.preventDefault(); submitExpr(); }
+  if (e.key === 'Backspace') { e.preventDefault(); clearExpr();  }
+  if (e.key === 'Escape')    abortGame();
+});
+
+
+// ════════════════════════════════════════════
+// DARK MODE
+// ════════════════════════════════════════════
+(function initDark() {
+  const saved = localStorage.getItem('make10_dark');
+  if (saved === 'light') { document.body.classList.add('light-mode'); }
+  updateDarkBtn();
+})();
+
+function toggleDarkMode() {
+  document.body.classList.toggle('light-mode');
+  const isLight = document.body.classList.contains('light-mode');
+  localStorage.setItem('make10_dark', isLight ? 'light' : 'dark');
+  updateDarkBtn();
+}
+function updateDarkBtn() {
+  const btn = document.getElementById('darkToggle');
+  if (!btn) return;
+  btn.textContent = document.body.classList.contains('light-mode') ? '🌙' : '☀️';
+}
+
+// ════════════════════════════════════════════
+// PAUSE SYSTEM
+// ════════════════════════════════════════════
+let _pausedTimerRemain = null;
+let _pauseTimerStart  = null;
+
+function pauseGame() {
+  if (!GS) return;
+  if (GS.paused) { resumeGame(); return; }
+  GS.paused = true;
+  // freeze timer
+  if (GS.timerIv) {
+    clearInterval(GS.timerIv);
+    const elapsed = (Date.now() - GS._timerStart) / 1000;
+    GS._timerRemain = Math.max(0, (GS.timeLimit || 30) - elapsed);
+  }
+  document.getElementById('pauseOv').classList.add('show');
+  SFX.click();
+}
+
+function resumeGame() {
+  if (!GS) return;
+  GS.paused = false;
+  document.getElementById('pauseOv').classList.remove('show');
+  // resume timer if time attack
+  if (GS.mode === 'time' && GS._timerRemain != null) {
+    GS._timerStart = Date.now() - ((GS.timeLimit || 30) - GS._timerRemain) * 1000;
+    startTimer(GS.timeLimit, GS._timerRemain);
+  }
+  SFX.click();
+}
+
+// Patch startGame to track timer start
+const _origStartGame = window.startGame;
+window.startGame = function(cfg) {
+  _origStartGame(cfg);
+  if (GS) GS._timerStart = Date.now();
+};
+
+// Patch startTimer to accept remaining time
+const _origStartTimer = window.startTimer;
+window.startTimer = function(sec, remainOverride) {
+  const bar = document.getElementById('tBar');
+  const effectiveSec = sec;
+  const startOffset = remainOverride != null ? (sec - remainOverride) * 1000 : 0;
+  const start = Date.now() - startOffset;
+  GS._timerStart = start;
+  clearInterval(GS.timerIv);
+  GS.timerIv = setInterval(() => {
+    if (GS?.paused) return;
+    const rem = sec - (Date.now()-start)/1000, pct = Math.max(0, (rem/sec)*100);
+    bar.style.width = pct + '%';
+    bar.className = pct < 30 ? 't-bar warn' : 't-bar';
+    document.getElementById('gQ').textContent = `${GS.qNum} | ⏱${Math.ceil(rem)}s`;
+    if (rem <= 0) { clearInterval(GS.timerIv); showFb('⏰ タイムアップ！', 'inf'); setTimeout(endGame, 1500); }
+  }, 200);
+};
+
+// P key to pause
+document.addEventListener('keydown', e => {
+  if (!document.querySelector('#sGame.active')) return;
+  if (e.key === 'p' || e.key === 'P') { e.preventDefault(); pauseGame(); }
+  if (e.key === 'Escape' && GS?.paused) { resumeGame(); }
+});
+
+// ════════════════════════════════════════════
+// HINT SYSTEM
+// ════════════════════════════════════════════
+function initHints() {
+  if (GS) {
+    GS.hintsLeft = GS.hintsLeft ?? 2;
+    updateHintBtn();
+  }
+}
+
+function updateHintBtn() {
+  const btn = document.getElementById('hintBtn');
+  const cnt = document.getElementById('hintCount');
+  if (!btn || !cnt || !GS) return;
+  cnt.textContent = `×${GS.hintsLeft}`;
+  btn.disabled = GS.hintsLeft <= 0;
+}
+
+function useHint() {
+  if (!GS || GS.hintsLeft <= 0) return;
+  if (!GS.problem?.solutions?.length) { showFb('💡 ヒントなし', 'inf'); return; }
+  GS.hintsLeft--;
+  // ヒント：使える演算子の1つを示す
+  const sol = GS.problem.solutions[0];
+  // Show first operator used in solution
+  const ops = sol.match(/[+\-×÷*/]/g) || [];
+  const opSym = { '+':'+', '-':'−', '*':'×', '/':'÷' };
+  const hint = ops.length ? `最初の演算子は「${opSym[ops[0]] || ops[0]}」` : `解の例：${sol}`;
+  showFb(`💡 ヒント: ${hint}`, 'inf');
+  updateHintBtn();
+  SFX.notify();
+}
+
+// Patch renderGame to init hints
+const _origRenderGame = window.renderGame;
+window.renderGame = function() {
+  _origRenderGame();
+  initHints();
+};
+
+// ════════════════════════════════════════════
+// DAILY CHALLENGE
+// ════════════════════════════════════════════
+function getDailyKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getDailySeed() {
+  const key = getDailyKey();
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = Math.imul(31, hash) + key.charCodeAt(i) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function getDailyNums() {
+  let seed = getDailySeed();
+  const nums = [];
+  for (let i = 0; i < 4; i++) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    nums.push((seed % 9) + 1);
+  }
+  // ensure solvable
+  const sols = solveAll(nums, '2');
+  if (sols.length > 0) return nums;
+  return [1, 2, 3, 4]; // fallback
+}
+
+function loadDailyCard() {
+  const card = document.getElementById('dailyCard');
+  if (!card || !CU) return;
+  card.style.display = 'block';
+
+  const nums = getDailyNums();
+  document.getElementById('dailyNums').textContent = nums.join('  ');
+
+  // countdown to midnight
+  function updateCountdown() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(24, 0, 0, 0);
+    const diff = midnight - now;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const el = document.getElementById('dailyCountdown');
+    if (el) el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} 後リセット`;
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // check if already completed today
+  const key = getDailyKey();
+  const done = (CU.dailyDone || {})[key];
+  const statusEl = document.getElementById('dailyStatus');
+  const btnEl    = document.getElementById('dailyBtn');
+
+  if (done) {
+    statusEl.textContent = `✅ クリア！ スコア: ${done.score}`;
+    statusEl.className = 'daily-status done';
+    btnEl.textContent = '📋 結果を共有';
+    btnEl.onclick = () => shareDaily(done);
+  } else {
+    statusEl.textContent = '今日の問題に挑戦しよう！';
+    statusEl.className = 'daily-status';
+    btnEl.textContent = '🎯 挑戦する';
+    btnEl.onclick = startDaily;
+  }
+}
+
+function startDaily() {
+  const nums = getDailyNums();
+  const sols = solveAll(nums, '2');
+  // 特殊モードとして起動
+  startGame({ mode: 'daily', diff: '2', totalQ: 1, maxMiss: 3, _dailyNums: nums, _dailySols: sols });
+}
+
+// daily 結果を保存（endGame のフック）
+const _origEndGame = window.endGame;
+window.endGame = function() {
+  if (GS?.mode === 'daily') {
+    const key = getDailyKey();
+    if (CU) {
+      CU.dailyDone = CU.dailyDone || {};
+      if (!CU.dailyDone[key]) {
+        CU.dailyDone[key] = { score: GS.score, date: key };
+        DB.saveUser(CU);
+      }
+    }
+  }
+  _origEndGame.apply(this, arguments);
+};
+
+// daily モード用に genProb をパッチ
+const _origGenProb = window.genProb;
+// startGame で _dailyNums があれば問題を固定
+const _origStartGame2 = window.startGame;
+window.startGame = function(cfg) {
+  _origStartGame2(cfg);
+  if (cfg._dailyNums && GS) {
+    GS.problem = { nums: cfg._dailyNums, solutions: cfg._dailySols || [] };
+    GS._dailyNums = cfg._dailyNums;
+    renderGame();
+  }
+};
+
+function shareDaily(result) {
+  const key = getDailyKey();
+  const nums = getDailyNums();
+  const text = `🧮 10 PUZZLE デイリーチャレンジ ${key}\n数字: ${nums.join(' ')}\nスコア: ${result.score}\n#10Puzzle`;
+  if (navigator.share) {
+    navigator.share({ title: '10 PUZZLE デイリー', text }).catch(() => copyText(text));
+  } else {
+    copyText(text);
+    toast('📋 クリップボードにコピーしました！', 'success');
+  }
+}
+
+function copyText(t) {
+  navigator.clipboard?.writeText(t).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    ta.remove();
+  });
+}
+
+// ════════════════════════════════════════════
+// ACHIEVEMENT SYSTEM
+// ════════════════════════════════════════════
+const ACHIEVEMENTS = [
+  { id:'first_win',   icon:'🎉', name:'初クリア',        desc:'初めて正解する',              check: u => totalCorrect(u) >= 1 },
+  { id:'correct10',   icon:'⚡', name:'10問正解',        desc:'合計10問正解',                check: u => totalCorrect(u) >= 10 },
+  { id:'correct100',  icon:'💎', name:'100問正解',       desc:'合計100問正解',               check: u => totalCorrect(u) >= 100 },
+  { id:'combo5',      icon:'🔥', name:'5連コンボ',       desc:'1ゲームで5コンボ以上',         check: u => maxComboEver(u) >= 5 },
+  { id:'combo10',     icon:'🌟', name:'10連コンボ',      desc:'1ゲームで10コンボ以上',        check: u => maxComboEver(u) >= 10 },
+  { id:'score1000',   icon:'🏆', name:'スコア1000',      desc:'1ゲームでスコア1000超え',      check: u => maxScore(u) >= 1000 },
+  { id:'score5000',   icon:'👑', name:'スコア5000',      desc:'1ゲームでスコア5000超え',      check: u => maxScore(u) >= 5000 },
+  { id:'survive20',   icon:'💀', name:'サバイバル20',    desc:'サバイバルで20問連続',         check: u => maxSurvive(u) >= 20 },
+  { id:'daily3',      icon:'📅', name:'デイリー3連続',   desc:'デイリー3日クリア',            check: u => dailyStreak(u) >= 3 },
+  { id:'daily7',      icon:'🌈', name:'デイリー7連続',   desc:'デイリー7日クリア',            check: u => dailyStreak(u) >= 7 },
+  { id:'extreme',     icon:'💥', name:'究極挑戦',        desc:'きわめて難易度でクリア',       check: u => hasExtreme(u) },
+  { id:'challenger',  icon:'⚔️', name:'チャレンジャー',  desc:'フレンド対戦を作成',           check: u => (u.challenges || []).length >= 1 },
+];
+
+function totalCorrect(u) {
+  return (u.history||[]).reduce((s,e) => s+(e.correct||0), 0);
+}
+function maxComboEver(u) {
+  return Math.max(0, ...(u.history||[]).map(e=>e.maxCombo||0));
+}
+function maxScore(u) {
+  return Math.max(0, ...[...(u.history||[]),...(u.survival||[]),...(u.time||[])].map(e=>e.score||0));
+}
+function maxSurvive(u) {
+  return Math.max(0, ...(u.survival||[]).map(e=>e.correct||0));
+}
+function dailyStreak(u) {
+  const done = Object.keys(u.dailyDone||{}).sort().reverse();
+  if (!done.length) return 0;
+  let streak = 0, cur = new Date();
+  for (let i = 0; i < done.length; i++) {
+    const d = new Date(done[i]);
+    const diff = Math.round((cur - d) / 86400000);
+    if (diff <= i + 1) streak++;
+    else break;
+    cur = d;
+  }
+  return streak;
+}
+function hasExtreme(u) {
+  return (u.history||[]).some(e => e.difficulty === '4' && e.correct > 0);
+}
+
+function checkAchievements(user) {
+  const unlocked = user.achievements || [];
+  const newOnes = [];
+  for (const a of ACHIEVEMENTS) {
+    if (!unlocked.includes(a.id) && a.check(user)) {
+      unlocked.push(a.id);
+      newOnes.push(a);
+    }
+  }
+  if (newOnes.length) {
+    user.achievements = unlocked;
+    DB.saveUser(user);
+    newOnes.forEach((a, i) => setTimeout(() => showAchievementPopup(a), i * 2000));
+  }
+}
+
+function showAchievementPopup(a) {
+  const el = document.createElement('div');
+  el.className = 'achievement-popup';
+  el.innerHTML = `
+    <div class="achieve-ttl">🏅 実績解除！</div>
+    <span class="achieve-icon">${a.icon}</span>
+    <div class="achieve-name">${a.name}</div>
+    <div class="achieve-desc">${a.desc}</div>`;
+  document.body.appendChild(el);
+  SFX.levelup();
+  setTimeout(() => {
+    el.style.opacity = '0'; el.style.transition = 'opacity .4s, transform .4s';
+    el.style.transform = 'translateX(60px)';
+    setTimeout(() => el.remove(), 400);
+  }, 3500);
+}
+
+function showAchievements() {
+  if (!CU) return;
+  checkAchievements(CU);
+  const unlocked = CU.achievements || [];
+  const el = document.getElementById('achieveList');
+  const total = ACHIEVEMENTS.length;
+  const got   = unlocked.length;
+  el.innerHTML = `
+    <div class="card mb-16">
+      <div class="card-title">達成状況: ${got} / ${total}</div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${(got/total*100).toFixed(0)}%"></div></div>
+    </div>
+    <div class="card">
+      <div class="badge-grid">
+        ${ACHIEVEMENTS.map(a => {
+          const done = unlocked.includes(a.id);
+          return `<div class="badge-item ${done?'unlocked':'locked'}" title="${a.desc}">
+            <span class="bi-icon">${a.icon}</span>
+            <div class="bi-name">${a.name}</div>
+            <div class="bi-desc">${done ? '✅ 解除済' : a.desc}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  go('sAchievements');
+}
+
+// Patch endGame to check achievements
+const _origEndGame2 = window.endGame;
+window.endGame = function() {
+  _origEndGame2.apply(this, arguments);
+  if (CU) setTimeout(() => checkAchievements(CU), 500);
+};
+
+// ════════════════════════════════════════════
+// FRIEND CHALLENGE / BATTLE
+// ════════════════════════════════════════════
+function showChallenge() {
+  if (!CU) return;
+  const el = document.getElementById('challengeContent');
+
+  // Check if URL has a challenge param
+  const params = new URLSearchParams(location.search);
+  const cData = params.get('challenge');
+
+  if (cData) {
+    // Incoming challenge
+    try {
+      const c = JSON.parse(atob(cData));
+      el.innerHTML = renderIncomingChallenge(c);
+      go('sChallenge');
+      return;
+    } catch {}
+  }
+
+  el.innerHTML = renderChallengeCreate();
+  go('sChallenge');
+}
+
+function renderChallengeCreate() {
+  const myBest = Math.max(0, ...(CU.history||[]).filter(e=>e.mode==='play').map(e=>e.score||0));
+  return `
+    <div class="card mb-16">
+      <div class="card-title">⚔️ 挑戦状を作る</div>
+      <p class="txt-muted mb-8">同じ問題を友達に解いてもらい、スコアを競おう！</p>
+      <div class="inp-grp">
+        <label>難易度</label>
+        <select id="chalDiff">
+          <option value="1">🌿 かんたん</option>
+          <option value="2" selected>⚡ ふつう</option>
+          <option value="3">🔥 むずかしい</option>
+          <option value="4">💥 きわめて</option>
+        </select>
+      </div>
+      <div class="inp-grp">
+        <label>問題数</label>
+        <input type="number" id="chalQ" value="5" min="1" max="20">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="createChallenge()">⚔️ 挑戦状を生成</button>
+    </div>
+    <div class="card mb-16" id="chalLinkCard" style="display:none;">
+      <div class="card-title">📋 シェアリンク</div>
+      <div class="challenge-link-box" id="chalLink" onclick="copyChalLink()">リンクを生成中...</div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-sm" onclick="copyChalLink()">📋 コピー</button>
+        <button class="btn btn-ghost btn-sm" onclick="shareChalLink()">📤 シェア</button>
+      </div>
+    </div>
+    <div class="card" id="chalResultCard" style="display:none;">
+      <div class="card-title">🏆 あなたのスコア</div>
+      <div class="stat-mini-grid">
+        <div class="stat-mini"><div class="v" id="chalMyScore">-</div><div class="l">スコア</div></div>
+        <div class="stat-mini"><div class="v" id="chalMyCorrect">-</div><div class="l">正解</div></div>
+      </div>
+    </div>`;
+}
+
+function renderIncomingChallenge(c) {
+  return `
+    <div class="vs-banner">
+      <div class="vs-title">⚔️ VS CHALLENGE</div>
+      <div class="vs-sub">${escapeHtml(c.from)} から挑戦状が届いた！</div>
+    </div>
+    <div class="card mb-16">
+      <div class="card-title">チャレンジ内容</div>
+      <div class="stat-mini-grid mb-16">
+        <div class="stat-mini"><div class="v">${['','🌿','⚡','🔥','💥'][c.diff]||c.diff}</div><div class="l">難易度</div></div>
+        <div class="stat-mini"><div class="v">${c.q}</div><div class="l">問題数</div></div>
+        <div class="stat-mini"><div class="v" style="font-size:.9rem;">${c.score}</div><div class="l">相手スコア</div></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="acceptChallenge(${JSON.stringify(c).replace(/"/g,'&quot;')})">⚔️ 受けて立つ！</button>
+      <button class="btn btn-ghost btn-full mt-12" onclick="go('sMenu')">↩ メニューへ</button>
+    </div>`;
+}
+
+let _chalData = null;
+function createChallenge() {
+  const diff = document.getElementById('chalDiff')?.value || '2';
+  const q    = +document.getElementById('chalQ')?.value || 5;
+
+  // Generate seed-based challenge
+  const seed = Date.now();
+  const myBest = Math.max(0, ...(CU.history||[]).filter(e=>e.mode==='play'&&e.difficulty===diff).map(e=>e.score||0));
+
+  _chalData = { from: CU.name, diff, q, seed, score: myBest, created: getDailyKey() };
+  CU.challenges = [...(CU.challenges||[]), { diff, q, seed, created: getDailyKey() }];
+  DB.saveUser(CU);
+  checkAchievements(CU);
+
+  const enc = btoa(JSON.stringify(_chalData));
+  const link = `${location.origin}${location.pathname}?challenge=${enc}`;
+  const card = document.getElementById('chalLinkCard');
+  const box  = document.getElementById('chalLink');
+  if (card) card.style.display = 'block';
+  if (box)  box.textContent = link;
+  toast('挑戦状を作成しました！', 'success');
+}
+
+function copyChalLink() {
+  const box = document.getElementById('chalLink');
+  if (!box) return;
+  copyText(box.textContent);
+  toast('📋 コピーしました！', 'success');
+}
+
+function shareChalLink() {
+  const box = document.getElementById('chalLink');
+  if (!box) return;
+  const text = `⚔️ 10 PUZZLE で対決しよう！\n${box.textContent}`;
+  if (navigator.share) {
+    navigator.share({ title: '10 PUZZLE チャレンジ', text, url: box.textContent }).catch(() => copyChalLink());
+  } else {
+    copyChalLink();
+  }
+}
+
+function acceptChallenge(c) {
+  // start game with challenge config
+  startGame({ mode: 'play', diff: c.diff, totalQ: c.q, maxMiss: 3, _challengeFrom: c.from, _challengeScore: c.score });
+}
+
+// Hook result screen to show vs result when challenge game
+const _origShowResult = window.showResult;
+window.showResult = function(e) {
+  _origShowResult(e);
+  if (e._challengeFrom) {
+    const win = e.score > (e._challengeScore || 0);
+    const resDiv = document.getElementById('rPractice');
+    if (resDiv) {
+      resDiv.innerHTML += `
+        <div class="card mt-16 vs-banner">
+          <div class="vs-title">${win ? '🏆 勝利！' : '😅 敗北...'}</div>
+          <div class="vs-sub">あなた: ${e.score} vs ${escapeHtml(e._challengeFrom)}: ${e._challengeScore||0}</div>
+        </div>`;
+    }
+  }
+};
+
+// Also patch startGame to pass challenge meta to GS, and then to entry
+const _origStartGame3 = window.startGame;
+window.startGame = function(cfg) {
+  _origStartGame3(cfg);
+  if (GS && cfg._challengeFrom) {
+    GS._challengeFrom  = cfg._challengeFrom;
+    GS._challengeScore = cfg._challengeScore;
+  }
+};
+const _origEndGame3 = window.endGame;
+window.endGame = function() {
+  if (GS?._challengeFrom) {
+    GS._entryExtras = { _challengeFrom: GS._challengeFrom, _challengeScore: GS._challengeScore };
+  }
+  _origEndGame3.apply(this, arguments);
+};
+
+// Patch showResult to get challenge data
+const _origShowResult2 = window.showResult;
+// (already patched above, we use _entryExtras via endGame patch)
+
+// ════════════════════════════════════════════
+// PATCH: daily card on menu refresh
+// ════════════════════════════════════════════
+const _origRefreshMenu = window.refreshMenu;
+window.refreshMenu = function() {
+  _origRefreshMenu();
+  loadDailyCard();
+};
+
+// ════════════════════════════════════════════
+// PATCH: pass _entryExtras from GS to entry in endGame
+// ════════════════════════════════════════════
+// We need endGame to carry challenge extras into showResult.
+// We achieve this by patching GS._entryExtras into the entry object.
+// Already handled above via showResult patch that reads GS before it's cleared.
+// Let's also check achievements after result
+;
+
+
+if (typeof _origGo === 'function') {
+  window.go = function(id) {
+    const r = _origGo.apply(this, arguments);
+    if (id === 'sMenu' || id === 'sAdmin') refreshAdmFbBadge();
+    if (id === 'sSettings') applySoundButtons();
+    return r;
+  };
+}
+</script>
+</body>
+</html>
